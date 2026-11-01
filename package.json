@@ -1,0 +1,51 @@
+{
+  "name": "magnet-frame-studio",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Local-first editor for designing print-ready magnet frames.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "app": "vite build && vite preview --open",
+    "test": "vitest run",
+    "fonts": "node scripts/gen-fonts-css.mjs"
+  },
+  "dependencies": {
+    "@fontsource/alef": "^5.3.0",
+    "@fontsource/amatic-sc": "^5.3.0",
+    "@fontsource/assistant": "^5.3.0",
+    "@fontsource/bellefair": "^5.3.0",
+    "@fontsource/bona-nova": "^5.3.0",
+    "@fontsource/david-libre": "^5.3.0",
+    "@fontsource/frank-ruhl-libre": "^5.3.0",
+    "@fontsource/fredoka": "^5.3.0",
+    "@fontsource/gveret-levin": "^5.3.0",
+    "@fontsource/heebo": "^5.3.0",
+    "@fontsource/karantina": "^5.3.0",
+    "@fontsource/miriam-libre": "^5.3.0",
+    "@fontsource/montserrat": "^5.3.0",
+    "@fontsource/noto-serif-hebrew": "^5.3.0",
+    "@fontsource/playfair-display": "^5.3.0",
+    "@fontsource/playpen-sans-hebrew": "^5.3.0",
+    "@fontsource/rubik": "^5.3.0",
+    "@fontsource/rubik-bubbles": "^5.3.0",
+    "@fontsource/rubik-doodle-shadow": "^5.3.0",
+    "@fontsource/rubik-moonrocks": "^5.3.0",
+    "@fontsource/secular-one": "^5.3.0",
+    "@fontsource/solitreo": "^5.3.0",
+    "@fontsource/suez-one": "^5.3.0",
+    "@fontsource/varela-round": "^5.3.0",
+    "konva": "^10.9.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "zustand": "^5.0.16"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-react": "^6.1.2",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  }
+}

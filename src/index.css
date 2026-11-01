@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Heebo", system-ui, sans-serif;
+
+  --color-ink-950: #0f1013;
+  --color-ink-900: #16171b;
+  --color-ink-850: #1b1c21;
+  --color-ink-800: #212329;
+  --color-ink-700: #2c2e36;
+  --color-ink-600: #3a3d47;
+  --color-ink-400: #8b8f9a;
+  --color-ink-200: #c9ccd3;
+  --color-ink-50: #f4f5f7;
+
+  --color-accent-400: #9aa2ea;
+  --color-accent-500: #7c86e1;
+  --color-accent-600: #5f69d3;
+
+  --color-danger-500: #e5484d;
+  --color-success-500: #46a758;
+
+  /* Editor guides; keep in sync with src/render/guides.js */
+  --color-guide-cut: #ff4d6d;
+  --color-guide-safe: #3ec1f3;
+}
+
+/* Native form controls follow the dark UI. */
+:root {
+  color-scheme: dark;
+}
