@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Button from './Button';
 
-export default function Dialog({ title, onClose, children }) {
+export default function Dialog({ title, onClose, wide = false, children }) {
   const ref = useRef(null);
   // Unmounting removes the dialog from the top layer, so no explicit close() is needed.
   useEffect(() => {
@@ -12,7 +12,7 @@ export default function Dialog({ title, onClose, children }) {
     <dialog
       ref={ref}
       onClose={onClose}
-      className="m-auto w-[min(92vw,420px)] rounded-xl border border-ink-700 bg-ink-900 p-5 text-ink-50 shadow-2xl backdrop:bg-black/60"
+      className={`m-auto ${wide ? 'w-[min(94vw,640px)]' : 'w-[min(92vw,420px)]'} max-h-[92vh] overflow-y-auto rounded-xl border border-ink-700 bg-ink-900 p-5 text-ink-50 shadow-2xl backdrop:bg-black/60`}
     >
       <h2 className="text-base font-semibold mb-4">{title}</h2>
       {children}

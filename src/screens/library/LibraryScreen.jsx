@@ -7,6 +7,7 @@ import { notify } from '@/ui/toast';
 import { signOut } from '@/auth/useSession';
 import { isNetworkError } from '@/storage/errors';
 import { backupFileName, downloadBlob, exportAllTemplates, importBackup } from '@/storage/backupZip';
+import NewTemplateDialog from './NewTemplateDialog';
 import TemplateCard from './TemplateCard';
 
 const OFFLINE = 'אין חיבור לאינטרנט. נסה שוב כשהחיבור יחזור.';
@@ -44,9 +45,9 @@ export default function LibraryScreen({ repo, onOpen }) {
     }
   }
 
-  async function create(name) {
+  async function create(name, preset) {
     let created;
-    if (await attempt(async () => (created = await repo.create(name)), 'לא הצלחתי ליצור את התבנית.')) onOpen(created.id);
+    if (await attempt(async () => (created = await repo.create(name, preset)), 'לא הצלחתי ליצור את התבנית.')) onOpen(created.id);
   }
 
   async function rename(item, name) {
@@ -151,7 +152,7 @@ export default function LibraryScreen({ repo, onOpen }) {
       </section>
 
       {dialog?.kind === 'new' && (
-        <NameDialog title="תבנית חדשה" initial="תבנית חדשה" confirmLabel="יצירה" onSubmit={create} onClose={() => setDialog(null)} />
+        <NewTemplateDialog onSubmit={create} onClose={() => setDialog(null)} />
       )}
       {dialog?.kind === 'rename' && (
         <NameDialog

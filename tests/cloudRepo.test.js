@@ -44,7 +44,7 @@ describe('cloud repo', () => {
     expect(a.revision).toBe(1);
     const list = await repo.list();
     expect(list.map((t) => t.name)).toEqual(['שנייה', 'ראשונה']);
-    expect(list[0]).toMatchObject({ id: b.id, size: { widthMm: 100, heightMm: 150 }, thumbnailUrl: null });
+    expect(list[0]).toMatchObject({ id: b.id, size: { widthMm: 100, heightMm: 75 }, thumbnailUrl: null });
   });
 
   it('loads the document with its revision', async () => {

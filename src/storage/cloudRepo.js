@@ -1,6 +1,7 @@
 // Templates of one signed-in user, in the cloud. Same jobs the local-folder version had:
 // list, create, load, save, rename, delete, images and thumbnails.
-import { createTemplateDoc, DEFAULT_SIZE, migrateTemplate } from '@/model/schema';
+import { DEFAULT_SIZE, migrateTemplate } from '@/model/schema';
+import { createPresetDoc, DEFAULT_PRESET } from '@/model/presets';
 import { ConflictError, NotFoundError, UnsupportedImageError } from './errors';
 import { ASSETS_DIR, assetFileName, imageTypeOf, templatePrefix, THUMBNAIL_FILE } from './paths';
 
@@ -46,8 +47,9 @@ export function createCloudRepo(gateway, userId) {
       }));
     },
 
-    async create(name) {
-      const doc = createTemplateDoc(name);
+    /** New template with a standard size and layout (see model/presets.js). */
+    async create(name, preset = DEFAULT_PRESET) {
+      const doc = createPresetDoc(name, preset);
       const { revision } = await gateway.insertTemplate({ id: doc.id, name: doc.name, doc });
       return { id: doc.id, doc, revision };
     },
