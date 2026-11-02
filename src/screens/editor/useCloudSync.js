@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { renderThumbnail } from '@/render/renderToCanvas';
 import { createSaver } from '@/storage/saver';
 import { useEditor } from '@/store/editorStore';
-import { notify } from '@/ui/toast';
 
 /**
  * @param revision  revision of the version that was loaded (undefined until loaded)
@@ -24,8 +23,8 @@ export function useCloudSync({ repo, templateId, revision, assets }) {
         revisionRef.current = await repo.save(templateId, doc, revisionRef.current);
       },
       saveThumbnail: async (doc) => repo.saveThumbnail(templateId, await renderThumbnail(doc, assets)),
+      // Failures show in the banner under the toolbar (SyncBanner), so no extra message here.
       onStatus: setStatus,
-      onError: () => notify('השמירה נכשלה. אנסה שוב אוטומטית.'),
     });
     saverRef.current = saver;
 
