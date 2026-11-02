@@ -10,6 +10,7 @@ import { uploadBuiltinImages } from '@/storage/builtinImages';
 import { isNetworkError } from '@/storage/errors';
 import { backupFileName, downloadBlob, exportAllTemplates, importBackup } from '@/storage/backupZip';
 import NewTemplateDialog from './NewTemplateDialog';
+import { importFrameFile } from './importFrame';
 import TagFilter from './TagFilter';
 import TemplateCard from './TemplateCard';
 
@@ -22,6 +23,7 @@ export default function LibraryScreen({ repo, onOpen }) {
   const [backupBusy, setBackupBusy] = useState(null); // progress text while backing up or restoring
   const [tag, setTag] = useState(null); // show only templates with this event tag
   const zipInputRef = useRef(null);
+  const frameInputRef = useRef(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -73,6 +75,19 @@ export default function LibraryScreen({ repo, onOpen }) {
     }
   }
 
+  async function importFrame(e) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setBackupBusy('מייבא מסגרת…');
+    let result;
+    const ok = await attempt(async () => (result = await importFrameFile(repo, file)), 'לא הצלחתי לייבא את המסגרת. אפשר PNG, JPG, WEBP או SVG.');
+    setBackupBusy(null);
+    if (!ok) return;
+    notify(result.foundWindow ? 'המסגרת נוספה. החלון השקוף שלה הוא אזור התמונה.' : 'המסגרת נוספה. לא נמצא בה חלון שקוף, אז כדאי להזיז את אזור התמונה למקום.', 'info');
+    onOpen(result.id);
+  }
+
   async function exportZip() {
     setBackupBusy('מכין גיבוי…');
     await attempt(async () => {
@@ -122,6 +137,10 @@ export default function LibraryScreen({ repo, onOpen }) {
             </>
           )}
           <input ref={zipInputRef} type="file" accept=".zip,application/zip" className="hidden" onChange={importZip} />
+          <Button variant="ghost" onClick={() => frameInputRef.current.click()} disabled={Boolean(backupBusy)} title="תבנית חדשה מתמונת מסגרת שיש לך (PNG עם חלון שקוף)">
+            ייבוא מסגרת
+          </Button>
+          <input ref={frameInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="hidden" onChange={importFrame} />
           <Button variant="primary" onClick={() => setDialog({ kind: 'new' })}>
             <Icon name="plus" />
             תבנית חדשה

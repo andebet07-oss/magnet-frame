@@ -20,17 +20,21 @@ Templates are stored in a dedicated Supabase project; there is no other server.
    date, colours, icons and the photo area can all be edited, and it adapts to every size and orientation. The new
    template is tagged with its kind of event, and the library can be filtered by it. Designs live in
    `src/model/starters.js` (building blocks in `src/model/layoutKit.js`).
-6. **Icons:** "אייקונים" opens a picker by kind of celebration (hearts, wedding, party, birthday, baby,
+6. **Frame from a picture:** "ייבוא מסגרת" makes a template from a frame picture you designed or bought (a PNG
+   with a transparent window). The picture is matched to the closest magnet size and becomes a locked layer, and
+   its transparent window becomes the photo area. Text, hearts and icons added on top stay editable; the picture
+   itself stays a picture.
+7. **Icons:** "אייקונים" opens a picker by kind of celebration (hearts, wedding, party, birthday, baby,
    bar/bat mitzvah, nature, fun). Single-colour icons take any colour (black, red, soft red, dark red, gold…);
    colourful emoji are added as images. Artwork: Phosphor, MingCute and Microsoft Fluent Emoji (MIT / Apache 2.0,
    see `public/icons/LICENSE.md`); the list is `src/icons/catalog.js`, and `npm run icons` fetches the artwork.
-7. **Hearts inside text:** the text panel has a row of symbols (hearts, rings, sparkles) that go into the text
+8. **Hearts inside text:** the text panel has a row of symbols (hearts, rings, sparkles) that go into the text
    at the cursor, e.g. "עדן ♥ אביב". They come from a small bundled font, so they print in the text's colour.
    The list is `src/fonts/textSymbols.json`; `scripts/build-symbol-font.py` rebuilds the font.
-8. **Print file:** "ייצוא PNG" in the editor downloads the frame as a PNG at 25 px per mm (2500×1875 for a
+9. **Print file:** "ייצוא PNG" in the editor downloads the frame as a PNG at 25 px per mm (2500×1875 for a
    10×7.5 magnet, 1875×2500 portrait): the cut-line area only, with the photo window transparent. Layers above
    the photo area (a heart, text) stay in the file.
-9. **Backup:** "גיבוי ZIP" downloads all templates as one zip. "שחזור מגיבוי" adds the templates from a zip
+10. **Backup:** "גיבוי ZIP" downloads all templates as one zip. "שחזור מגיבוי" adds the templates from a zip
    as new copies (nothing is overwritten).
 
 ## Development
@@ -61,7 +65,7 @@ are applied to the database automatically when pushed.
 1. **Editor basics** ✅ library, canvas with cut line and safe area, layers, text / image / shape elements, undo, keyboard.
 2. **Cloud storage** ✅ email sign-in, templates and images in Supabase, offline handling, conflict protection, zip backup.
 3. **Frames** ✅ standard magnet sizes (7.5×10, 10×15, 10×10), Polaroid and bottom-strip layouts, photo area, sample photo with pan and zoom, icon library, hearts inside text.
-4. **Ready-made frames** ✅ gallery by kind of event, event tags and library filter.
+4. **Ready-made frames** ✅ gallery by kind of event, event tags and library filter, import a frame from a PNG.
 5. **Print file** ✅ transparent PNG at 25 px per mm (2500×1875).
 6. Event settings, bound fields, duplicate template. PDF with bleed if the print shop needs it.
 
