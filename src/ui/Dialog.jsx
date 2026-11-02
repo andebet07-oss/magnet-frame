@@ -1,22 +1,43 @@
 // Modal dialogs on the native <dialog> element (focus trap, Escape and backdrop for free).
+//
+// Dialogs are rendered straight into <body> and centred explicitly, so where the component sits in
+// the page (e.g. inside the toolbar) can never affect where the window appears. If the browser
+// refuses showModal(), the dialog still opens on top of everything, with its own dimmed overlay.
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Button from './Button';
 
 export default function Dialog({ title, onClose, wide = false, children }) {
   const ref = useRef(null);
+  const [fallback, setFallback] = useState(false);
+
   // Unmounting removes the dialog from the top layer, so no explicit close() is needed.
   useEffect(() => {
-    if (!ref.current.open) ref.current.showModal();
+    const dialog = ref.current;
+    if (dialog.open) return;
+    try {
+      dialog.showModal();
+    } catch (err) {
+      console.warn('[dialog] showModal failed, opening on top of the page instead:', err);
+      dialog.show();
+      setFallback(true);
+    }
   }, []);
-  return (
-    <dialog
-      ref={ref}
-      onClose={onClose}
-      className={`m-auto ${wide ? 'w-[min(94vw,640px)]' : 'w-[min(92vw,420px)]'} max-h-[92vh] overflow-y-auto rounded-xl border border-ink-700 bg-ink-900 p-5 text-ink-50 shadow-2xl backdrop:bg-black/60`}
-    >
-      <h2 className="text-base font-semibold mb-4">{title}</h2>
-      {children}
-    </dialog>
+
+  return createPortal(
+    <>
+      {fallback && <div className="fixed inset-0 z-40 bg-black/60" onPointerDown={onClose} aria-hidden="true" />}
+      <dialog
+        ref={ref}
+        onClose={onClose}
+        onKeyDown={(e) => fallback && e.key === 'Escape' && onClose()}
+        className={`fixed inset-0 z-50 m-auto h-fit ${wide ? 'w-[min(94vw,640px)]' : 'w-[min(92vw,420px)]'} max-h-[92vh] overflow-y-auto rounded-xl border border-ink-700 bg-ink-900 p-5 text-ink-50 shadow-2xl backdrop:bg-black/60`}
+      >
+        <h2 className="text-base font-semibold mb-4">{title}</h2>
+        {children}
+      </dialog>
+    </>,
+    document.body,
   );
 }
 
