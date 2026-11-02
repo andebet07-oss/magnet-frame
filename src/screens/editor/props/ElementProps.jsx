@@ -25,7 +25,7 @@ export function GeometryProps({ el }) {
   const locked = el.locked;
   const mm = (field) => (v) => update({ [field]: roundMm(v) }, field);
   // Images keep their proportions, as with the corner handles.
-  const keepRatio = el.type === 'image' && el.width > 0 && el.height > 0;
+  const keepRatio = (el.type === 'image' || el.type === 'icon') && el.width > 0 && el.height > 0;
   const setWidth = (v) => update(keepRatio ? { width: roundMm(v), height: roundMm((v * el.height) / el.width) } : { width: roundMm(v) }, 'width');
   const setHeight = (v) => update(keepRatio ? { height: roundMm(v), width: roundMm((v * el.width) / el.height) } : { height: roundMm(v) }, 'height');
   return (

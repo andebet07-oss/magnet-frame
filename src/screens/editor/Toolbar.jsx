@@ -1,14 +1,14 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import Button, { IconButton } from '@/ui/Button';
 import Icon from '@/ui/icons';
 import { notify } from '@/ui/toast';
 import { createImage, createPhotoArea, createShape, createText } from '@/model/schema';
 import { splitExtension } from '@/model/names';
-import { isNetworkError } from '@/storage/errors';
 import { useDoc, useEditor } from '@/store/editorStore';
 import { useEditorContext } from './EditorContext';
+import IconPicker from './IconPicker';
+import { IMAGE_ACCEPT, imageUploadMessage, importImage } from './imageImport';
 
-export const IMAGE_ACCEPT = 'image/png,image/jpeg,image/webp,image/svg+xml';
 
 const STATUS = {
   saved: { label: 'נשמר', className: 'text-ink-400' },
@@ -18,21 +18,6 @@ const STATUS = {
   error: { label: 'לא נשמר · מנסה שוב', className: 'text-danger-500' },
   conflict: { label: 'לא נשמר · נשמר במקום אחר', className: 'text-danger-500' },
 };
-
-/** Uploads a picked image to the template's cloud folder and returns { path, img }. */
-export async function importImage({ repo, templateId, assets }, file) {
-  const path = await repo.uploadAsset(templateId, file);
-  const img = await assets.put(path, file);
-  return { path, img };
-}
-
-/** Hebrew message for a failed image upload. */
-export function imageUploadMessage(err) {
-  if (err?.name === 'UnsupportedImageError') return 'אפשר להוסיף רק קובצי PNG, JPG, WEBP או SVG.';
-  if (isNetworkError(err)) return 'אין חיבור לאינטרנט. אפשר להוסיף תמונה כשהחיבור יחזור.';
-  if (/exceeded|too large|payload/i.test(err?.message ?? '') || err?.statusCode === '413') return 'הקובץ גדול מדי. אפשר עד 20MB.';
-  return 'לא הצלחתי להוסיף את התמונה. נסה שוב.';
-}
 
 export default function Toolbar({ status, onClose }) {
   const doc = useDoc();
@@ -45,6 +30,7 @@ export default function Toolbar({ status, onClose }) {
   const hasPhotoArea = doc.elements.some((e) => e.type === 'photo');
   const hasSample = Boolean(doc.preview?.photo);
   const fileRef = useRef(null);
+  const [iconsOpen, setIconsOpen] = useState(false);
   const saveState = STATUS[status] ?? STATUS.saved;
 
   async function onImagePicked(e) {
@@ -92,6 +78,11 @@ export default function Toolbar({ status, onClose }) {
           תמונה
         </Button>
         <input ref={fileRef} type="file" accept={IMAGE_ACCEPT} className="hidden" onChange={onImagePicked} />
+        <Button variant="ghost" onClick={() => setIconsOpen(true)}>
+          <Icon name="heart" />
+          אייקונים
+        </Button>
+        {iconsOpen && <IconPicker onClose={() => setIconsOpen(false)} />}
         <IconButton label="מלבן" onClick={() => addElement(createShape(doc.size, 'rect'))}>
           <Icon name="rect" />
         </IconButton>

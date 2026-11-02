@@ -7,6 +7,7 @@ import { useDoc, useEditor } from '@/store/editorStore';
 
 function typeIcon(el) {
   if (el.type === 'photo') return 'camera';
+  if (el.type === 'icon') return 'heart';
   if (el.type === 'text') return 'text';
   if (el.type === 'image' || el.type === 'background') return 'image';
   if (el.shape === 'ellipse') return 'ellipse';

@@ -6,7 +6,7 @@ import { notify } from '@/ui/toast';
 import { formatNumber } from '@/model/units';
 import { useEditor } from '@/store/editorStore';
 import { useEditorContext } from '../EditorContext';
-import { IMAGE_ACCEPT, imageUploadMessage, importImage } from '../Toolbar';
+import { IMAGE_ACCEPT, imageUploadMessage, importImage } from '../imageImport';
 import { Section } from './ElementProps';
 
 export function BackgroundProps({ el }) {

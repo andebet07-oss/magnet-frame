@@ -47,6 +47,8 @@ function buildElement(el, doc, getImage) {
       return buildImage(el, getImage);
     case 'shape':
       return buildShape(el);
+    case 'icon':
+      return buildIcon(el);
     default:
       return null;
   }
@@ -107,10 +109,7 @@ function buildPhotoArea(el, doc, getImage, mode) {
   const group = new Konva.Group({ ...attrs, clipFunc: (ctx) => photoWindowPath(ctx, el, w, h) });
   // Konva sizes a group by its children and ignores the clip, so a zoomed sample photo would make the
   // selection handles far bigger than the window. The area's bounds are the window itself.
-  group.getClientRect = (config = {}) => {
-    const rect = { x: 0, y: 0, width: w, height: h };
-    return config.skipTransform ? rect : group._transformedRect(rect, config.relativeTo);
-  };
+  boundToBox(group, w, h);
   const sample = mode === 'sample' && doc.preview?.photo ? getImage(doc.preview.photo) : null;
   if (sample) {
     const placement = photoPlacement(w, h, sample.naturalWidth || sample.width, sample.naturalHeight || sample.height, doc.preview);
@@ -132,6 +131,26 @@ function buildPhotoArea(el, doc, getImage, mode) {
       listening: false,
     }),
   );
+  return group;
+}
+
+/** Makes a group report its own box as its bounds (selection handles), whatever its children draw. */
+function boundToBox(group, w, h) {
+  group.getClientRect = (config = {}) => {
+    const rect = { x: 0, y: 0, width: w, height: h };
+    return config.skipTransform ? rect : group._transformedRect(rect, config.relativeTo);
+  };
+}
+
+function buildIcon(el) {
+  const attrs = boxAttrs(el);
+  const [vx, vy, vw, vh] = el.viewBox ?? [0, 0, 24, 24];
+  const sx = attrs.width / vw;
+  const sy = attrs.height / vh;
+  const group = new Konva.Group(attrs);
+  group.add(new Konva.Path({ data: el.path, fill: el.color, x: -vx * sx, y: -vy * sy, scaleX: sx, scaleY: sy }));
+  // The path's own bounds are a little smaller than its grid; handles follow the full icon box.
+  boundToBox(group, attrs.width, attrs.height);
   return group;
 }
 

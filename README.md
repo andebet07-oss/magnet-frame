@@ -15,7 +15,11 @@ Templates are stored in a dedicated Supabase project; there is no other server.
    connection returns. Leaving the editor with unsaved changes asks first.
 4. **Same template open in two places?** A save never silently overwrites a newer one: the editor asks which
    version to keep.
-5. **Backup:** "גיבוי ZIP" downloads all templates as one zip. "שחזור מגיבוי" adds the templates from a zip
+5. **Icons:** "אייקונים" opens a picker by kind of celebration (hearts, wedding, party, birthday, baby,
+   bar/bat mitzvah, nature, fun). Single-colour icons take any colour (black, red, soft red, dark red, gold…);
+   colourful emoji are added as images. Artwork: Google Material Symbols and Noto Emoji (Apache 2.0, see
+   `public/icons/LICENSE.md`); the list is `src/icons/catalog.js`, and `npm run icons` fetches the artwork.
+6. **Backup:** "גיבוי ZIP" downloads all templates as one zip. "שחזור מגיבוי" adds the templates from a zip
    as new copies (nothing is overwritten).
 
 ## Development
@@ -36,6 +40,7 @@ npm run dev
 | `npm run app` | Build and open the production build locally |
 | `npm test` | Unit tests: model, undo, fonts, sign-in errors, cloud storage, saver, zip backup |
 | `npm run fonts` | Regenerate `src/fonts/fonts.css` after editing `src/fonts/registry.js` |
+| `npm run icons` | Fetch icon artwork after editing `src/icons/catalog.js` (needs network) |
 
 Database and storage rules live in `supabase/` (see `supabase/README.md`). New files in `supabase/migrations/`
 are applied to the database automatically when pushed.
@@ -44,7 +49,7 @@ are applied to the database automatically when pushed.
 
 1. **Editor basics** ✅ library, canvas with cut line and safe area, layers, text / image / shape elements, undo, keyboard.
 2. **Cloud storage** ✅ email sign-in, templates and images in Supabase, offline handling, conflict protection, zip backup.
-3. Photo area and preview with a sample photo (pan and zoom).
+3. **Frames** ✅ standard magnet sizes (7.5×10, 10×15, 10×10), Polaroid and bottom-strip layouts, photo area, sample photo with pan and zoom, icon library.
 4. Event settings, bound fields, duplicate template, tag filter.
 5. Export: PNG and PDF at print size with bleed, clean and guides versions.
 

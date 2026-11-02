@@ -9,7 +9,8 @@
     "build": "vite build",
     "app": "vite build && vite preview --open",
     "test": "vitest run",
-    "fonts": "node scripts/gen-fonts-css.mjs"
+    "fonts": "node scripts/gen-fonts-css.mjs",
+    "icons": "node scripts/build-icons.mjs"
   },
   "dependencies": {
     "@fontsource/alef": "^5.3.0",

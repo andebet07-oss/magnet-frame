@@ -15,7 +15,7 @@ export const DEFAULT_EVENT = {
   logo: null,
 };
 
-const KNOWN_TYPES = new Set(['background', 'photo', 'text', 'image', 'shape']);
+const KNOWN_TYPES = new Set(['background', 'photo', 'text', 'image', 'shape', 'icon']);
 
 /** Sample photo shown in the photo area (editor and thumbnails only, never in the print file). */
 export const DEFAULT_PREVIEW = { photo: null, zoom: 1, focusX: 0.5, focusY: 0.5 };
@@ -70,6 +70,15 @@ export function createPhotoArea(size) {
   const width = size.widthMm - 2 * margin;
   const height = Math.round((size.heightMm - margin) * 0.78);
   return { ...base('photo', 'אזור תמונה', size, width, height), y: margin, shape: 'rect', cornerRadiusMm: 0 };
+}
+
+/**
+ * A single-colour vector icon. The path is stored in the template, so it doesn't depend on the
+ * icon library staying the same. `viewBox` is [minX, minY, width, height] of the path.
+ */
+export function createIcon(size, { id, label, path, viewBox }, color) {
+  const side = Math.round(Math.min(size.widthMm, size.heightMm) * 0.16);
+  return { ...base('icon', label, size, side, round2((side * viewBox[3]) / viewBox[2])), icon: id, path, viewBox, color };
 }
 
 export function createText(size, font = DEFAULT_FONT) {

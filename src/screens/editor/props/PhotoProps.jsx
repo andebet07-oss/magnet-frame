@@ -9,7 +9,7 @@ import { roundMm } from '@/model/units';
 import { ZOOM_MAX, ZOOM_MIN } from '@/model/photo';
 import { useDoc, useEditor } from '@/store/editorStore';
 import { useEditorContext } from '../EditorContext';
-import { IMAGE_ACCEPT, imageUploadMessage, importImage } from '../Toolbar';
+import { IMAGE_ACCEPT, imageUploadMessage, importImage } from '../imageImport';
 import { Section } from './ElementProps';
 
 const SHAPES = [

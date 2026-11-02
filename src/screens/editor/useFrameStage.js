@@ -32,7 +32,7 @@ const TRANSFORMER_STYLE = {
 function transformerFor(el) {
   if (el.locked) return { enabledAnchors: [], rotateEnabled: false, borderDash: [4, 3] };
   if (el.type === 'text') return { enabledAnchors: TEXT_ANCHORS, keepRatio: true, rotateEnabled: true, borderDash: null };
-  return { enabledAnchors: ALL_ANCHORS, keepRatio: el.type === 'image', rotateEnabled: true, borderDash: null };
+  return { enabledAnchors: ALL_ANCHORS, keepRatio: el.type === 'image' || el.type === 'icon', rotateEnabled: true, borderDash: null };
 }
 
 const findNode = (s, id) => s.world?.findOne((n) => n.id() === id) ?? null;
