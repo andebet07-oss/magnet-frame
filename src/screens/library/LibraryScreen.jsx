@@ -1,11 +1,12 @@
 // Home screen: the signed-in user's templates, from the cloud.
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Button from '@/ui/Button';
 import Icon from '@/ui/icons';
 import { ConfirmDialog, NameDialog } from '@/ui/Dialog';
 import { notify } from '@/ui/toast';
 import { signOut } from '@/auth/useSession';
 import { isNetworkError } from '@/storage/errors';
+import { backupFileName, downloadBlob, exportAllTemplates, importBackup } from '@/storage/backupZip';
 import TemplateCard from './TemplateCard';
 
 const OFFLINE = 'אין חיבור לאינטרנט. נסה שוב כשהחיבור יחזור.';
@@ -14,6 +15,8 @@ export default function LibraryScreen({ repo, onOpen }) {
   const [items, setItems] = useState(null);
   const [loadError, setLoadError] = useState(null);
   const [dialog, setDialog] = useState(null); // { kind: 'new' | 'rename' | 'delete', item? }
+  const [backupBusy, setBackupBusy] = useState(null); // progress text while backing up or restoring
+  const zipInputRef = useRef(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -60,6 +63,32 @@ export default function LibraryScreen({ repo, onOpen }) {
     }
   }
 
+  async function exportZip() {
+    setBackupBusy('מכין גיבוי…');
+    await attempt(async () => {
+      const { blob, count } = await exportAllTemplates(repo, { onProgress: (done, total) => setBackupBusy(`מגבה ${done}/${total}…`) });
+      downloadBlob(blob, backupFileName());
+      notify(`הגיבוי ירד למחשב: ${count} תבניות בקובץ ZIP אחד.`, 'info');
+    }, 'הגיבוי נכשל.');
+    setBackupBusy(null);
+  }
+
+  async function importZip(e) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setBackupBusy('קורא את הגיבוי…');
+    await attempt(async () => {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const { imported, failed } = await importBackup(repo, bytes, { onProgress: (done, total) => setBackupBusy(`משחזר ${done}/${total}…`) });
+      if (!imported && !failed.length) notify('לא נמצאו תבניות בקובץ הזה.');
+      else if (failed.length) notify(`שוחזרו ${imported} תבניות. ${failed.length} לא נקראו: ${failed.map((f) => f.folder).join(', ')}`);
+      else notify(`שוחזרו ${imported} תבניות, כעותקים חדשים.`, 'info');
+      await refresh();
+    }, 'השחזור נכשל. ודא שזה קובץ ZIP של גיבוי מהכלי.');
+    setBackupBusy(null);
+  }
+
   return (
     <main className="min-h-screen">
       <header className="border-b border-ink-700 bg-ink-900">
@@ -68,6 +97,21 @@ export default function LibraryScreen({ repo, onOpen }) {
           <Button variant="ghost" onClick={() => attempt(signOut, 'ההתנתקות נכשלה. נסה שוב.')}>
             התנתקות
           </Button>
+          {backupBusy ? (
+            <span className="text-sm text-ink-200" role="status">
+              {backupBusy}
+            </span>
+          ) : (
+            <>
+              <Button variant="ghost" onClick={exportZip} disabled={!items?.length} title="הורדת כל התבניות כקובץ ZIP אחד">
+                גיבוי ZIP
+              </Button>
+              <Button variant="ghost" onClick={() => zipInputRef.current.click()} title="הוספת התבניות מקובץ גיבוי, כעותקים חדשים">
+                שחזור מגיבוי
+              </Button>
+            </>
+          )}
+          <input ref={zipInputRef} type="file" accept=".zip,application/zip" className="hidden" onChange={importZip} />
           <Button variant="primary" onClick={() => setDialog({ kind: 'new' })}>
             <Icon name="plus" />
             תבנית חדשה
