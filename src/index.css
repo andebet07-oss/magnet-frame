@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Heebo", system-ui, sans-serif;
+  --font-sans: "Magnet Symbols", "Heebo", system-ui, sans-serif;
 
   --color-ink-950: #0f1013;
   --color-ink-900: #16171b;

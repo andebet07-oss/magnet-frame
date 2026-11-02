@@ -3,6 +3,10 @@ import { useEffect, useRef, useState } from 'react';
 import Icon from '@/ui/icons';
 import { FieldLabel } from '@/ui/fields';
 import { CATEGORIES, FONTS, getFont, sampleText } from '@/fonts/registry';
+import { SYMBOL_FONT } from '@/fonts/textSymbols';
+
+// Samples show hearts (♥) the way the canvas draws them: symbols font first.
+const cssFamily = (family) => `"${SYMBOL_FONT}", "${family}"`;
 
 export default function FontPicker({ value, onChange }) {
   const [open, setOpen] = useState(false);
@@ -31,7 +35,7 @@ export default function FontPicker({ value, onChange }) {
         className="h-9 flex items-center gap-2 rounded-md border border-ink-700 bg-ink-850 px-2 text-start hover:border-ink-600"
       >
         {/* Inline style: the family is data, not a fixed class. */}
-        <span className="flex-1 truncate text-base" style={{ fontFamily: `"${value}"` }}>
+        <span className="flex-1 truncate text-base" style={{ fontFamily: cssFamily(value) }}>
           {font ? sampleText(font) : value}
         </span>
         <span className="text-xs text-ink-400" dir="ltr">
@@ -55,7 +59,7 @@ export default function FontPicker({ value, onChange }) {
                   }}
                   className={`w-full px-3 py-1.5 text-start hover:bg-ink-700 ${f.family === value ? 'bg-accent-600/20' : ''}`}
                 >
-                  <span className="block text-lg leading-snug truncate" style={{ fontFamily: `"${f.family}"` }}>
+                  <span className="block text-lg leading-snug truncate" style={{ fontFamily: cssFamily(f.family) }}>
                     {sampleText(f)}
                   </span>
                   <span className="flex gap-2 text-xs text-ink-400">

@@ -70,6 +70,6 @@ export function nearestWeight(family, weight) {
 }
 
 export function sampleText(font) {
-  if (font.category === 'latin') return 'Noa & Itai · 24.12.2026';
-  return font.niqqud ? 'נֹעָה וְאִיתַי · 24.12.2026' : 'נועה ואיתי · 24.12.2026';
+  if (font.category === 'latin') return 'Noa ♥ Itai · 24.12.2026';
+  return font.niqqud ? 'נֹעָה ♥ אִיתַי · 24.12.2026' : 'נועה ♥ איתי · 24.12.2026';
 }

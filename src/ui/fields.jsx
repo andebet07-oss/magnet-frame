@@ -110,11 +110,12 @@ export function SelectField({ label, value, onChange, options }) {
   );
 }
 
-export function TextAreaField({ label, value, onChange, rows = 3 }) {
+export function TextAreaField({ label, value, onChange, rows = 3, inputRef }) {
   return (
     <label className="flex flex-col gap-1">
       <FieldLabel>{label}</FieldLabel>
       <textarea
+        ref={inputRef}
         dir="auto"
         rows={rows}
         className={`${INPUT} h-auto py-1.5 leading-relaxed resize-y`}

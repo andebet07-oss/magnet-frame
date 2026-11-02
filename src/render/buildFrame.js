@@ -5,6 +5,7 @@ import Konva from 'konva';
 import { coverCrop, frameBoxes, ptToMm } from '@/model/units';
 import { detectDirection } from '@/model/text';
 import { photoPlacement } from '@/model/photo';
+import { normalizeSymbols, withSymbols } from '@/fonts/textSymbols';
 
 // Konva world units per mm. Working in 0.1 mm keeps canvas font sizes in a normal pixel range
 // (an 18 pt title is 63.5 units, not 6.35), so text measurement and line breaks are stable
@@ -155,15 +156,17 @@ function buildIcon(el) {
 }
 
 function buildText(el) {
+  const text = normalizeSymbols(el.text);
   const node = new Konva.Text({
-    text: el.text ?? '',
-    fontFamily: el.font,
+    text,
+    // Hearts, rings and sparkles in the text come from the symbols font, in the text's colour.
+    fontFamily: withSymbols(el.font),
     fontStyle: String(el.weight ?? 400),
     fontSize: ptToMm(el.sizePt) * U,
     lineHeight: el.lineHeight ?? 1.2,
     fill: el.color,
     align: el.align ?? 'center',
-    direction: detectDirection(el.text),
+    direction: detectDirection(text),
     width: el.width * U,
     wrap: 'word',
   });

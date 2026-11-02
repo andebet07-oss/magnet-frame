@@ -1,10 +1,13 @@
 // Properties for text, image and shape elements. All sizes are in mm, font size in pt.
+import { useRef } from 'react';
 import { ColorField, NumberField, Segmented, SelectField, TextAreaField } from '@/ui/fields';
 import Icon from '@/ui/icons';
 import { nearestWeight, getFont, WEIGHT_LABELS } from '@/fonts/registry';
+import { normalizeSymbols } from '@/fonts/textSymbols';
 import { normalizeDeg, roundMm } from '@/model/units';
 import { useEditor } from '@/store/editorStore';
 import FontPicker from '../FontPicker';
+import SymbolBar from './SymbolBar';
 
 export function Section({ title, children }) {
   return (
@@ -60,9 +63,12 @@ const ALIGN_OPTIONS = [
 export function TextProps({ el }) {
   const update = useUpdate(el);
   const weights = getFont(el.font)?.weights ?? [400, 700];
+  const textRef = useRef(null);
+  const setText = (text) => update({ text: normalizeSymbols(text) }, 'text');
   return (
     <Section title="טקסט">
-      <TextAreaField label="תוכן" value={el.text} onChange={(text) => update({ text }, 'text')} />
+      <TextAreaField label="תוכן" value={el.text} onChange={setText} inputRef={textRef} />
+      <SymbolBar textRef={textRef} value={el.text} onInsert={setText} />
       <FontPicker value={el.font} onChange={(font) => update({ font, weight: nearestWeight(font, el.weight ?? 400) }, 'font')} />
       <div className="grid grid-cols-2 gap-2">
         <SelectField

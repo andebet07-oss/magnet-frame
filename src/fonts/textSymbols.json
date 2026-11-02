@@ -1,0 +1,12 @@
+[
+  { "label": "לב", "insert": "♥", "chars": ["♥", "🖤"], "source": "ph:heart-fill" },
+  { "label": "לב בקו", "insert": "♡", "chars": ["♡"], "source": "ph:heart-light" },
+  { "label": "לב מחודד", "insert": "❤", "chars": ["❤"], "source": "ph:heart-straight-fill" },
+  { "label": "לב מוטה", "insert": "❥", "chars": ["❥"], "source": "ph:heart-fill", "rotate": -18 },
+  { "label": "שני לבבות", "insert": "💕", "chars": ["💕"], "source": "mingcute:love-fill" },
+  { "label": "טבעות", "insert": "⚭", "chars": ["⚭"], "source": "custom:rings" },
+  { "label": "טבעת יהלום", "insert": "💍", "chars": ["💍"], "source": "custom:diamond-ring" },
+  { "label": "נצנוץ", "insert": "✦", "chars": ["✦"], "source": "ph:star-four-fill" },
+  { "label": "נצנוץ בקו", "insert": "✧", "chars": ["✧"], "source": "ph:star-four-light" },
+  { "label": "מגן דוד", "insert": "✡", "chars": ["✡"], "source": "ph:star-of-david-light" }
+]

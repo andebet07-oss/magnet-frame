@@ -92,7 +92,7 @@ function namesAndDate(size, top, style) {
   const y = top + (room - block) / 2;
   const width = W - 2 * safeMm;
   return [
-    text({ name: 'שמות', value: 'שמות החוגגים', x: safeMm, y, width, sizeMm: namesMm, ...style.names }),
+    text({ name: 'שמות', value: 'שם ♥ שם', x: safeMm, y, width, sizeMm: namesMm, ...style.names }),
     text({ name: 'תאריך', value: 'תאריך האירוע', x: safeMm, y: y + namesMm * 1.15, width, sizeMm: dateMm, ...style.date }),
   ];
 }
