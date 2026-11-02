@@ -5,6 +5,7 @@ import Icon from '@/ui/icons';
 import { ConfirmDialog, NameDialog } from '@/ui/Dialog';
 import { notify } from '@/ui/toast';
 import { pickFolder } from '@/storage/libraryFolder';
+import { signOut } from '@/auth/useSession';
 import { createTemplate, deleteTemplate, listTemplates, renameTemplate } from '@/storage/templateRepo';
 import TemplateCard from './TemplateCard';
 
@@ -73,11 +74,23 @@ export default function LibraryScreen({ root, onOpen, onChangeRoot }) {
     }
   }
 
+  async function leave() {
+    try {
+      await signOut();
+    } catch (err) {
+      console.error('[library] sign-out failed:', err);
+      notify('ההתנתקות נכשלה. נסה שוב.');
+    }
+  }
+
   return (
     <main className="min-h-screen">
       <header className="border-b border-ink-700 bg-ink-900">
         <div className="mx-auto max-w-6xl px-4 md:px-8 py-4 flex flex-wrap items-center gap-3">
           <h1 className="text-xl font-bold flex-1">תבניות</h1>
+          <Button variant="ghost" onClick={leave}>
+            התנתקות
+          </Button>
           <Button variant="ghost" onClick={changeFolder} title="החלפת תיקייה">
             <Icon name="folder" />
             {root.name}
