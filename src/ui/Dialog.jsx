@@ -7,6 +7,9 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Button from './Button';
 
+const WIDTHS = { normal: 'w-[min(92vw,420px)]', wide: 'w-[min(94vw,640px)]', xl: 'w-[min(96vw,980px)]' };
+
+/** @param wide  false, true (640px) or 'xl' (980px, for galleries) */
 export default function Dialog({ title, onClose, wide = false, children }) {
   const ref = useRef(null);
   const [fallback, setFallback] = useState(false);
@@ -31,7 +34,7 @@ export default function Dialog({ title, onClose, wide = false, children }) {
         ref={ref}
         onClose={onClose}
         onKeyDown={(e) => fallback && e.key === 'Escape' && onClose()}
-        className={`fixed inset-0 z-50 m-auto h-fit ${wide ? 'w-[min(94vw,640px)]' : 'w-[min(92vw,420px)]'} max-h-[92vh] overflow-y-auto rounded-xl border border-ink-700 bg-ink-900 p-5 text-ink-50 shadow-2xl backdrop:bg-black/60`}
+        className={`fixed inset-0 z-50 m-auto h-fit ${WIDTHS[wide === 'xl' ? 'xl' : wide ? 'wide' : 'normal']} max-h-[92vh] overflow-y-auto rounded-xl border border-ink-700 bg-ink-900 p-5 text-ink-50 shadow-2xl backdrop:bg-black/60`}
       >
         <h2 className="text-base font-semibold mb-4">{title}</h2>
         {children}

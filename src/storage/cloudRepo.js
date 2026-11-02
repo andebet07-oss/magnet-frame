@@ -27,7 +27,7 @@ export function createCloudRepo(gateway, userId) {
   const repo = {
     userId,
 
-    /** Library rows, newest first: { id, name, updatedAt, revision, size, thumbnailUrl }. */
+    /** Library rows, newest first: { id, name, updatedAt, revision, size, tags, thumbnailUrl }. */
     async list() {
       const rows = await gateway.listTemplates();
       const keys = rows.map((r) => `${prefix(r.id)}/${THUMBNAIL_FILE}`);
@@ -43,6 +43,7 @@ export function createCloudRepo(gateway, userId) {
         updatedAt: r.updated_at,
         revision: r.revision,
         size: { ...DEFAULT_SIZE, ...r.size },
+        tags: Array.isArray(r.tags) ? r.tags.map(String) : [],
         thumbnailUrl: urls.get(keys[i]) ?? null,
       }));
     },

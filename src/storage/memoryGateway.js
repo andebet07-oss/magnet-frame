@@ -23,7 +23,7 @@ export function createMemoryGateway() {
       gateway.check('listTemplates');
       return [...rows.values()]
         .sort((a, b) => b.updated_at.localeCompare(a.updated_at))
-        .map((r) => ({ id: r.id, name: r.name, updated_at: r.updated_at, revision: r.revision, size: r.doc.size }));
+        .map((r) => ({ id: r.id, name: r.name, updated_at: r.updated_at, revision: r.revision, size: r.doc.size, tags: r.doc.tags }));
     },
     async getTemplate(id) {
       gateway.check('getTemplate');

@@ -97,6 +97,9 @@ export function ShapeProps({ el }) {
         {el.shape === 'rect' && (
           <NumberField label="עיגול פינות" suffix="מ״מ" value={el.cornerRadiusMm ?? 0} min={0} onCommit={(v) => update({ cornerRadiusMm: roundMm(v) }, 'cornerRadiusMm')} />
         )}
+        {el.stroke && (
+          <NumberField label="קו מקווקו (0 = רציף)" suffix="מ״מ" value={el.dashMm ?? 0} min={0} onCommit={(v) => update({ dashMm: roundMm(v) }, 'dashMm')} />
+        )}
       </div>
     </Section>
   );

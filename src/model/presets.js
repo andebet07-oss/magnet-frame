@@ -5,8 +5,9 @@
 // Most event photos are landscape, so landscape is the default orientation.
 // Layout proportions follow common practice: a band of roughly 15–20% of the height for names
 // and date, a transparent photo window, and text kept inside the safe area so cutting can't clip it.
-import { createBackground, createTemplateDoc, newId } from './schema';
-import { roundMm, MM_PER_PT } from './units';
+import { half, photoArea, rect, text } from './layoutKit';
+import { createBackground, createTemplateDoc } from './schema';
+import { STARTER_CATEGORIES, STARTERS } from './starters';
 
 export const SIZE_PRESETS = [
   { id: 'regular', label: 'רגיל · 7.5×10', note: 'הגודל הנפוץ באירועים', long: 100, short: 75 },
@@ -28,7 +29,6 @@ export const LAYOUTS = [
 export const DEFAULT_PRESET = { sizeId: 'regular', orientation: 'landscape', layoutId: 'polaroid' };
 
 const BLEED_MM = 3;
-const half = (n) => Math.round(n * 2) / 2; // round to 0.5 mm
 
 export function presetSize(sizeId, orientation = 'landscape') {
   const preset = SIZE_PRESETS.find((p) => p.id === sizeId) ?? SIZE_PRESETS[0];
@@ -38,46 +38,6 @@ export function presetSize(sizeId, orientation = 'landscape') {
   // 3 mm keeps the small magnet usable; larger ones get 4 mm.
   const safeMm = Math.min(widthMm, heightMm) <= 75 ? 3 : 4;
   return { widthMm, heightMm, bleedMm: BLEED_MM, safeMm };
-}
-
-function photoArea({ x, y, width, height }) {
-  return {
-    id: newId(),
-    type: 'photo',
-    name: 'אזור תמונה',
-    visible: true,
-    locked: false,
-    x: roundMm(x),
-    y: roundMm(y),
-    width: roundMm(width),
-    height: roundMm(height),
-    rotation: 0,
-    opacity: 1,
-    shape: 'rect',
-    cornerRadiusMm: 0,
-  };
-}
-
-function text({ name, value, x, y, width, sizeMm, font, weight = 400, color }) {
-  return {
-    id: newId(),
-    type: 'text',
-    name,
-    visible: true,
-    locked: false,
-    x: roundMm(x),
-    y: roundMm(y),
-    width: roundMm(width),
-    rotation: 0,
-    opacity: 1,
-    text: value,
-    font,
-    weight,
-    sizePt: Math.round((sizeMm / MM_PER_PT) * 2) / 2,
-    lineHeight: 1.15,
-    color,
-    align: 'center',
-  };
 }
 
 /**
@@ -116,24 +76,7 @@ function strip(size) {
   return [
     // The photo runs to the edge: its window extends into the bleed on three sides.
     photoArea({ x: -b, y: -b, width: W + 2 * b, height: H - band + b }),
-    {
-      id: newId(),
-      type: 'shape',
-      name: 'פס תחתון',
-      visible: true,
-      locked: false,
-      x: -b,
-      y: H - band,
-      width: W + 2 * b,
-      height: band + b,
-      rotation: 0,
-      opacity: 1,
-      shape: 'rect',
-      fill: '#1F2A44',
-      stroke: null,
-      strokeWidthMm: 0,
-      cornerRadiusMm: 0,
-    },
+    rect({ name: 'פס תחתון', x: -b, y: H - band, width: W + 2 * b, height: band + b, fill: '#1F2A44' }),
     ...namesAndDate(size, H - band, {
       names: { font: 'Heebo', weight: 600, color: '#FFFFFF' },
       date: { font: 'Heebo', weight: 400, color: '#D3D8E2' },
@@ -143,11 +86,24 @@ function strip(size) {
 
 const LAYOUT_BUILDERS = { polaroid, strip, blank: () => [] };
 
-/** A new template document with a standard size and, optionally, a ready-made layout. */
+/** The gallery in "תבנית חדשה": the basic layouts, then ready-made frames by kind of event. */
+export const DESIGN_CATEGORIES = [{ id: 'basic', label: 'בסיסי' }, ...STARTER_CATEGORIES];
+
+export function designsIn(categoryId) {
+  if (categoryId === 'basic') return LAYOUTS;
+  return STARTERS.filter((d) => d.category === categoryId);
+}
+
+/**
+ * A new template document with a standard size and a layout: a basic one or a ready-made frame.
+ * A ready-made frame is tagged with its kind of event.
+ */
 export function createPresetDoc(name, { sizeId, orientation, layoutId } = DEFAULT_PRESET) {
   const doc = createTemplateDoc(name);
   const size = presetSize(sizeId, orientation);
-  const build = LAYOUT_BUILDERS[layoutId] ?? LAYOUT_BUILDERS.blank;
-  return { ...doc, size, elements: [createBackground(), ...build(size)] };
+  const starter = STARTERS.find((d) => d.id === layoutId);
+  const build = starter?.build ?? LAYOUT_BUILDERS[layoutId] ?? LAYOUT_BUILDERS.blank;
+  const background = { ...createBackground(), fill: starter?.background ?? '#FFFFFF' };
+  const tags = starter ? [STARTER_CATEGORIES.find((c) => c.id === starter.category).label] : [];
+  return { ...doc, size, tags, elements: [background, ...build(size)] };
 }
-

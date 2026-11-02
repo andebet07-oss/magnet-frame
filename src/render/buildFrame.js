@@ -203,6 +203,8 @@ function buildShape(el) {
     fill: el.fill || undefined,
     stroke: el.stroke || undefined,
     strokeWidth: (el.strokeWidthMm || 0) * U,
+    // Dashed outline: dashes and gaps of `dashMm`.
+    dash: el.dashMm > 0 ? [el.dashMm * U, el.dashMm * U] : undefined,
   };
   if (el.shape === 'ellipse') {
     // Konva ellipses are drawn around their origin, so no offset is needed.

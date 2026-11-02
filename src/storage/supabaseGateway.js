@@ -13,7 +13,7 @@ export function createSupabaseGateway(client) {
 
   return {
     async listTemplates() {
-      return unwrap(await templates().select('id, name, updated_at, revision, size:doc->size').order('updated_at', { ascending: false }));
+      return unwrap(await templates().select('id, name, updated_at, revision, size:doc->size, tags:doc->tags').order('updated_at', { ascending: false }));
     },
     /** Null when the template doesn't exist or belongs to someone else. */
     async getTemplate(id) {

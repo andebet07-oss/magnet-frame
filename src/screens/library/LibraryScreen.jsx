@@ -5,9 +5,12 @@ import Icon from '@/ui/icons';
 import { ConfirmDialog, NameDialog } from '@/ui/Dialog';
 import { notify } from '@/ui/toast';
 import { signOut } from '@/auth/useSession';
+import { createPresetDoc } from '@/model/presets';
+import { uploadBuiltinImages } from '@/storage/builtinImages';
 import { isNetworkError } from '@/storage/errors';
 import { backupFileName, downloadBlob, exportAllTemplates, importBackup } from '@/storage/backupZip';
 import NewTemplateDialog from './NewTemplateDialog';
+import TagFilter from './TagFilter';
 import TemplateCard from './TemplateCard';
 
 const OFFLINE = 'אין חיבור לאינטרנט. נסה שוב כשהחיבור יחזור.';
@@ -17,6 +20,7 @@ export default function LibraryScreen({ repo, onOpen }) {
   const [loadError, setLoadError] = useState(null);
   const [dialog, setDialog] = useState(null); // { kind: 'new' | 'rename' | 'delete', item? }
   const [backupBusy, setBackupBusy] = useState(null); // progress text while backing up or restoring
+  const [tag, setTag] = useState(null); // show only templates with this event tag
   const zipInputRef = useRef(null);
 
   const refresh = useCallback(async () => {
@@ -47,7 +51,12 @@ export default function LibraryScreen({ repo, onOpen }) {
 
   async function create(name, preset) {
     let created;
-    if (await attempt(async () => (created = await repo.create(name, preset)), 'לא הצלחתי ליצור את התבנית.')) onOpen(created.id);
+    const make = async () => {
+      // Ready-made frames may use the app's colourful icons; they are copied into the new template.
+      const doc = await uploadBuiltinImages(repo, createPresetDoc(name, preset));
+      created = await repo.insert(doc);
+    };
+    if (await attempt(make, 'לא הצלחתי ליצור את התבנית.')) onOpen(created.id);
   }
 
   async function rename(item, name) {
@@ -136,9 +145,10 @@ export default function LibraryScreen({ repo, onOpen }) {
             </Button>
           </div>
         )}
+        {items?.length > 0 && <TagFilter items={items} value={tag} onChange={setTag} />}
         {items?.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {items.map((item) => (
+            {items.filter((item) => !tag || item.tags.includes(tag)).map((item) => (
               <TemplateCard
                 key={item.id}
                 item={item}

@@ -107,7 +107,7 @@ export const SHAPE_PRESETS = {
 
 export function createShape(size, preset) {
   const p = SHAPE_PRESETS[preset];
-  return { ...base('shape', p.name, size, p.width, p.height), shape: p.shape, fill: '#C9A96E', stroke: null, strokeWidthMm: 0, cornerRadiusMm: 0 };
+  return { ...base('shape', p.name, size, p.width, p.height), shape: p.shape, fill: '#C9A96E', stroke: null, strokeWidthMm: 0, cornerRadiusMm: 0, dashMm: 0 };
 }
 
 /**
