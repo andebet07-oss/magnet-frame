@@ -28,7 +28,12 @@ export function useSession() {
       const linkTokens = sessionTokensFromUrl(window.location.href);
       // initialize() finishes reading a returning sign-in link and reports what went wrong.
       let { error: initError } = await supabase.auth.initialize();
-      if (linkTokens) ({ error: initError } = await supabase.auth.setSession(linkTokens));
+      if (linkTokens) {
+        const { data: existing } = await supabase.auth.getSession();
+        // Never replace a signed-in session from a link: a crafted link could otherwise switch accounts.
+        if (existing?.session) initError = null;
+        else ({ error: initError } = await supabase.auth.setSession(linkTokens));
+      }
       const { data, error: sessionError } = await supabase.auth.getSession();
       // A link opened in another browser is ignored by Supabase (no PKCE verifier here): say so.
       const wrongBrowser = hadCode && !data?.session ? { code: 'flow_state_not_found' } : null;
