@@ -19,6 +19,7 @@
 
   --color-danger-500: #e5484d;
   --color-success-500: #46a758;
+  --color-warn-500: #f5a524;
 
   /* Editor guides; keep in sync with src/render/guides.js */
   --color-guide-cut: #ff4d6d;

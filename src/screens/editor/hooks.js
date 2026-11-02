@@ -1,11 +1,9 @@
-// Small editor hooks: viewport size, font/asset readiness, keyboard shortcuts, autosave.
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+// Small editor hooks: viewport size, font/asset readiness, keyboard shortcuts.
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { assetPathsOf } from '@/model/elements';
 import { NUDGE_MM, NUDGE_SHIFT_MM, roundMm } from '@/model/units';
 import { ensureFonts, fontSpecsOf, isFontLoaded } from '@/fonts/loadFonts';
-import { createSaver } from '@/storage/saver';
 import { selectedOf, useEditor } from '@/store/editorStore';
-import { notify } from '@/ui/toast';
 
 export function useElementSize(ref) {
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -88,42 +86,4 @@ export function useEditorKeys({ onSaveNow }) {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [onSaveNow]);
-}
-
-/** Saves every change to the folder. Status: 'saved' | 'dirty' | 'saving' | 'error'. */
-export function useAutosave({ root, folder, assets, ready }) {
-  const [status, setStatus] = useState('saved');
-  const saverRef = useRef(null);
-
-  useEffect(() => {
-    if (!ready) return undefined;
-    const saver = createSaver({ root, folder, assets, onStatus: setStatus, onError: notify });
-    saverRef.current = saver;
-    let last = useEditor.getState().history?.present;
-    // Keeps the library thumbnail current, e.g. after the file was edited outside the app.
-    if (last) saver.scheduleThumbnail(last);
-
-    const unsubscribe = useEditor.subscribe((state) => {
-      const doc = state.history?.present;
-      if (doc && doc !== last) {
-        last = doc;
-        saver.schedule(doc);
-      }
-    });
-    const onBeforeUnload = (e) => {
-      if (!saver.isDirty()) return;
-      saver.flush();
-      e.preventDefault();
-    };
-    window.addEventListener('beforeunload', onBeforeUnload);
-    return () => {
-      unsubscribe();
-      window.removeEventListener('beforeunload', onBeforeUnload);
-      saverRef.current = null;
-      saver.flush();
-    };
-  }, [root, folder, assets, ready]);
-
-  const flush = useCallback(() => saverRef.current?.flush() ?? Promise.resolve(), []);
-  return { status, flush };
 }

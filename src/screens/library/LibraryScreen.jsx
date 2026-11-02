@@ -1,85 +1,62 @@
-// Home screen: every template in the chosen folder.
-import { useCallback, useEffect, useRef, useState } from 'react';
+// Home screen: the signed-in user's templates, from the cloud.
+import { useCallback, useEffect, useState } from 'react';
 import Button from '@/ui/Button';
 import Icon from '@/ui/icons';
 import { ConfirmDialog, NameDialog } from '@/ui/Dialog';
 import { notify } from '@/ui/toast';
-import { pickFolder } from '@/storage/libraryFolder';
 import { signOut } from '@/auth/useSession';
-import { createTemplate, deleteTemplate, listTemplates, renameTemplate } from '@/storage/templateRepo';
+import { isNetworkError } from '@/storage/errors';
 import TemplateCard from './TemplateCard';
 
-const revokeThumbnails = (items) => items?.forEach((i) => i.thumbnailUrl && URL.revokeObjectURL(i.thumbnailUrl));
+const OFFLINE = 'אין חיבור לאינטרנט. נסה שוב כשהחיבור יחזור.';
 
-export default function LibraryScreen({ root, onOpen, onChangeRoot }) {
+export default function LibraryScreen({ repo, onOpen }) {
   const [items, setItems] = useState(null);
+  const [loadError, setLoadError] = useState(null);
   const [dialog, setDialog] = useState(null); // { kind: 'new' | 'rename' | 'delete', item? }
-  const itemsRef = useRef(null);
 
   const refresh = useCallback(async () => {
     try {
-      const list = await listTemplates(root);
-      revokeThumbnails(itemsRef.current);
-      itemsRef.current = list;
-      setItems(list);
+      setItems(await repo.list());
+      setLoadError(null);
     } catch (err) {
       console.error('[library] listing failed:', err);
-      notify('לא הצלחתי לקרוא את תיקיית התבניות.');
-      setItems([]);
+      setLoadError(isNetworkError(err) ? OFFLINE : 'לא הצלחתי לטעון את התבניות.');
     }
-  }, [root]);
+  }, [repo]);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
-  useEffect(() => () => revokeThumbnails(itemsRef.current), []);
 
-  async function create(name) {
+  // Run a library action; on failure show `message` (or the offline message) and keep the dialog open.
+  async function attempt(action, message) {
     try {
-      const { folder } = await createTemplate(root, name);
-      onOpen(folder);
+      await action();
+      return true;
     } catch (err) {
-      console.error('[library] create failed:', err);
-      notify('לא הצלחתי ליצור את התבנית.');
+      console.error(`[library] ${message}`, err);
+      notify(isNetworkError(err) ? OFFLINE : message);
+      return false;
     }
   }
 
+  async function create(name) {
+    let created;
+    if (await attempt(async () => (created = await repo.create(name)), 'לא הצלחתי ליצור את התבנית.')) onOpen(created.id);
+  }
+
   async function rename(item, name) {
-    try {
-      await renameTemplate(root, item.folder, name);
+    if (await attempt(() => repo.rename(item.id, name), 'שינוי השם נכשל.')) {
       setDialog(null);
       await refresh();
-    } catch (err) {
-      console.error('[library] rename failed:', err);
-      notify('שינוי השם נכשל.');
     }
   }
 
   async function remove(item) {
-    try {
-      await deleteTemplate(root, item.folder);
+    if (await attempt(() => repo.remove(item.id), 'המחיקה נכשלה.')) {
       setDialog(null);
       await refresh();
-    } catch (err) {
-      console.error('[library] delete failed:', err);
-      notify('המחיקה נכשלה.');
-    }
-  }
-
-  async function changeFolder() {
-    try {
-      onChangeRoot(await pickFolder());
-    } catch (err) {
-      if (err.name !== 'AbortError') notify('לא הצלחתי לפתוח את התיקייה.');
-    }
-  }
-
-  async function leave() {
-    try {
-      await signOut();
-    } catch (err) {
-      console.error('[library] sign-out failed:', err);
-      notify('ההתנתקות נכשלה. נסה שוב.');
     }
   }
 
@@ -88,12 +65,8 @@ export default function LibraryScreen({ root, onOpen, onChangeRoot }) {
       <header className="border-b border-ink-700 bg-ink-900">
         <div className="mx-auto max-w-6xl px-4 md:px-8 py-4 flex flex-wrap items-center gap-3">
           <h1 className="text-xl font-bold flex-1">תבניות</h1>
-          <Button variant="ghost" onClick={leave}>
+          <Button variant="ghost" onClick={() => attempt(signOut, 'ההתנתקות נכשלה. נסה שוב.')}>
             התנתקות
-          </Button>
-          <Button variant="ghost" onClick={changeFolder} title="החלפת תיקייה">
-            <Icon name="folder" />
-            {root.name}
           </Button>
           <Button variant="primary" onClick={() => setDialog({ kind: 'new' })}>
             <Icon name="plus" />
@@ -103,10 +76,16 @@ export default function LibraryScreen({ root, onOpen, onChangeRoot }) {
       </header>
 
       <section className="mx-auto max-w-6xl px-4 md:px-8 py-6">
-        {items === null && <p className="text-ink-400 text-sm">טוען…</p>}
+        {loadError && (
+          <div role="alert" className="mb-6 flex flex-wrap items-center gap-3 rounded-lg border border-danger-500/50 bg-danger-500/10 px-4 py-3">
+            <p className="flex-1 text-sm">{loadError}</p>
+            <Button onClick={refresh}>נסה שוב</Button>
+          </div>
+        )}
+        {items === null && !loadError && <p className="text-ink-400 text-sm">טוען…</p>}
         {items?.length === 0 && (
           <div className="rounded-xl border border-dashed border-ink-600 py-16 text-center">
-            <p className="text-ink-200 mb-4">אין עדיין תבניות בתיקייה הזו.</p>
+            <p className="text-ink-200 mb-4">אין עדיין תבניות.</p>
             <Button variant="primary" onClick={() => setDialog({ kind: 'new' })}>
               יצירת התבנית הראשונה
             </Button>
@@ -116,9 +95,9 @@ export default function LibraryScreen({ root, onOpen, onChangeRoot }) {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {items.map((item) => (
               <TemplateCard
-                key={item.folder}
+                key={item.id}
                 item={item}
-                onOpen={() => onOpen(item.folder)}
+                onOpen={() => onOpen(item.id)}
                 onRename={() => setDialog({ kind: 'rename', item })}
                 onDelete={() => setDialog({ kind: 'delete', item })}
               />
@@ -133,7 +112,7 @@ export default function LibraryScreen({ root, onOpen, onChangeRoot }) {
       {dialog?.kind === 'rename' && (
         <NameDialog
           title="שינוי שם"
-          initial={dialog.item.doc.name}
+          initial={dialog.item.name}
           confirmLabel="שמירה"
           onSubmit={(name) => rename(dialog.item, name)}
           onClose={() => setDialog(null)}
@@ -142,7 +121,7 @@ export default function LibraryScreen({ root, onOpen, onChangeRoot }) {
       {dialog?.kind === 'delete' && (
         <ConfirmDialog
           title="מחיקת תבנית"
-          message={`התבנית «${dialog.item.doc.name}» והקבצים שלה יימחקו מהתיקייה. אי אפשר לבטל את זה.`}
+          message={`התבנית «${dialog.item.name}» והתמונות שלה יימחקו. אי אפשר לבטל את זה.`}
           confirmLabel="מחיקה"
           onConfirm={() => remove(dialog.item)}
           onClose={() => setDialog(null)}

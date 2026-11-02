@@ -4,7 +4,7 @@ import Icon from '@/ui/icons';
 import { notify } from '@/ui/toast';
 import { createImage, createShape, createText } from '@/model/schema';
 import { splitExtension } from '@/model/names';
-import { addAsset } from '@/storage/templateRepo';
+import { isNetworkError } from '@/storage/errors';
 import { useDoc, useEditor } from '@/store/editorStore';
 import { useEditorContext } from './EditorContext';
 
@@ -14,14 +14,24 @@ const STATUS = {
   saved: { label: 'נשמר', className: 'text-ink-400' },
   dirty: { label: 'שומר…', className: 'text-ink-400' },
   saving: { label: 'שומר…', className: 'text-ink-400' },
-  error: { label: 'שגיאה בשמירה', className: 'text-danger-500' },
+  offline: { label: 'לא נשמר · אין חיבור', className: 'text-warn-500' },
+  error: { label: 'לא נשמר · מנסה שוב', className: 'text-danger-500' },
+  conflict: { label: 'לא נשמר · נשמר במקום אחר', className: 'text-danger-500' },
 };
 
-/** Copies a picked image into the template folder and returns { path, img }. */
-export async function importImage({ root, folder, assets }, file) {
-  const path = await addAsset(root, folder, file);
+/** Uploads a picked image to the template's cloud folder and returns { path, img }. */
+export async function importImage({ repo, templateId, assets }, file) {
+  const path = await repo.uploadAsset(templateId, file);
   const img = await assets.put(path, file);
   return { path, img };
+}
+
+/** Hebrew message for a failed image upload. */
+export function imageUploadMessage(err) {
+  if (err?.name === 'UnsupportedImageError') return 'אפשר להוסיף רק קובצי PNG, JPG, WEBP או SVG.';
+  if (isNetworkError(err)) return 'אין חיבור לאינטרנט. אפשר להוסיף תמונה כשהחיבור יחזור.';
+  if (/exceeded|too large|payload/i.test(err?.message ?? '') || err?.statusCode === '413') return 'הקובץ גדול מדי. אפשר עד 20MB.';
+  return 'לא הצלחתי להוסיף את התמונה. נסה שוב.';
 }
 
 export default function Toolbar({ status, onClose }) {
@@ -43,7 +53,7 @@ export default function Toolbar({ status, onClose }) {
       addElement(createImage(doc.size, path, img.naturalWidth, img.naturalHeight, splitExtension(file.name).stem));
     } catch (err) {
       console.error('[toolbar] image import failed:', err);
-      notify('לא הצלחתי להוסיף את התמונה. נסה קובץ PNG, JPG או SVG.');
+      notify(imageUploadMessage(err));
     }
   }
 

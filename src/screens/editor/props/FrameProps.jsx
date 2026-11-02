@@ -6,7 +6,7 @@ import { notify } from '@/ui/toast';
 import { formatNumber } from '@/model/units';
 import { useEditor } from '@/store/editorStore';
 import { useEditorContext } from '../EditorContext';
-import { IMAGE_ACCEPT, importImage } from '../Toolbar';
+import { IMAGE_ACCEPT, imageUploadMessage, importImage } from '../Toolbar';
 import { Section } from './ElementProps';
 
 export function BackgroundProps({ el }) {
@@ -23,7 +23,7 @@ export function BackgroundProps({ el }) {
       update({ image: path }, 'image');
     } catch (err) {
       console.error('[background] image import failed:', err);
-      notify('לא הצלחתי לטעון את תמונת הרקע.');
+      notify(imageUploadMessage(err));
     }
   }
 

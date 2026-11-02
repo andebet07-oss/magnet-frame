@@ -1,5 +1,4 @@
-// Decoded images for one open template, keyed by their path inside the template folder.
-import { readAsset } from './templateRepo';
+// Decoded images for one open template, keyed by their path inside the template ("assets/leaf.svg").
 
 async function decode(blob) {
   const url = URL.createObjectURL(blob);
@@ -14,13 +13,14 @@ async function decode(blob) {
   }
 }
 
-export function createAssetCache(root, folder) {
+/** @param readBlob  async (path) => Blob */
+export function createAssetCache(readBlob) {
   const images = new Map(); // path → HTMLImageElement, or null when the file is missing/broken
   const inflight = new Map();
 
   async function load(path) {
     try {
-      images.set(path, await decode(await readAsset(root, folder, path)));
+      images.set(path, await decode(await readBlob(path)));
     } catch (err) {
       console.error(`[assets] could not load "${path}":`, err.message);
       images.set(path, null);
@@ -40,11 +40,15 @@ export function createAssetCache(root, folder) {
         });
       return Promise.all(pending);
     },
-    /** Register a file the user just added, without reading it back from disk. */
+    /** Register a file the user just added, without downloading it again. */
     async put(path, blob) {
       const img = await decode(blob);
       images.set(path, img);
       return img;
+    },
+    /** Forget failed loads so they are tried again (e.g. after the connection came back). */
+    retryFailed() {
+      for (const [path, img] of images) if (img === null) images.delete(path);
     },
   };
 }

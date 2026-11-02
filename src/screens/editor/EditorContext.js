@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 
-/** { root, folder, assets } for the template open in the editor. */
+/** { repo, templateId, assets } for the template open in the editor. */
 export const EditorContext = createContext(null);
 
 export function useEditorContext() {
