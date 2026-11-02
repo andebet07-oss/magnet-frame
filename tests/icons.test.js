@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { CUSTOM_SYMBOLS, EMOJI, ICON_CATEGORIES, ICON_COLORS, iconsIn, SYMBOLS } from '@/icons/catalog';
+import { EMOJI, ICON_CATEGORIES, ICON_COLORS, iconsIn, SYMBOLS } from '@/icons/catalog';
 import { SYMBOL_PATHS } from '@/icons/symbolPaths';
 import { createIcon, createTemplateDoc, migrateTemplate } from '@/model/schema';
 
@@ -12,24 +12,33 @@ describe('icon catalogue', () => {
       expect(SYMBOL_PATHS[s.id]?.path, s.id).toMatch(/^[Mm]/); // lowercase m is valid SVG
       expect(SYMBOL_PATHS[s.id].viewBox).toHaveLength(4);
     }
-    for (const s of CUSTOM_SYMBOLS) expect(s.path).toMatch(/^M.*Z$/);
+    expect(Object.keys(SYMBOL_PATHS).sort()).toEqual(SYMBOLS.map((s) => s.id).sort());
+  });
+
+  it('uses only the modern, permissively licensed sets', () => {
+    for (const s of SYMBOLS) expect(s.src, s.id).toMatch(/^(ph|mingcute|custom):[a-z-]+$/);
+  });
+
+  it('has rings and a diamond ring among the wedding icons', () => {
+    const ids = iconsIn('love').symbols.map((s) => s.id);
+    expect(ids).toEqual(expect.arrayContaining(['rings', 'diamond-ring', 'heart', 'two-hearts']));
   });
 
   it('has a file for every emoji', () => {
     for (const e of EMOJI) {
-      const file = new URL(`../public/icons/noto/${e.id}.svg`, import.meta.url);
+      const file = new URL(`../public/icons/emoji/${e.id}.svg`, import.meta.url);
       expect(existsSync(file), e.id).toBe(true);
       expect(readFileSync(file, 'utf8')).toMatch(/^<svg xmlns="http:\/\/www.w3.org\/2000\/svg" viewBox="0 0 \d+ \d+"/);
     }
   });
 
   it('gives every icon a Hebrew name, known categories and a unique id', () => {
-    const all = [...SYMBOLS, ...CUSTOM_SYMBOLS, ...EMOJI];
+    const all = [...SYMBOLS, ...EMOJI];
     for (const i of all) {
       expect(i.label, i.id).toMatch(/[֐-׿]/);
       expect(i.categories.every((c) => categoryIds.has(c)), i.id).toBe(true);
     }
-    expect(new Set([...SYMBOLS, ...CUSTOM_SYMBOLS].map((s) => s.id)).size).toBe(SYMBOLS.length + CUSTOM_SYMBOLS.length);
+    expect(new Set(SYMBOLS.map((s) => s.id)).size).toBe(SYMBOLS.length);
     expect(new Set(EMOJI.map((e) => e.id)).size).toBe(EMOJI.length);
   });
 

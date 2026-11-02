@@ -134,7 +134,7 @@ export default function IconPicker({ onClose }) {
             </div>
           </section>
         )}
-        <p className="text-xs text-ink-400">האייקונים מ-Google ‏(Material Symbols ו-Noto Emoji). אחרי ההוספה אפשר לשנות גודל, צבע ומיקום.</p>
+        <p className="text-xs text-ink-400">אייקונים מ-Phosphor ו-MingCute, אימוג׳י מ-Fluent Emoji. אחרי ההוספה אפשר לשנות גודל, צבע ומיקום.</p>
       </div>
     </Dialog>
   );

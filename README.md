@@ -17,9 +17,12 @@ Templates are stored in a dedicated Supabase project; there is no other server.
    version to keep.
 5. **Icons:** "אייקונים" opens a picker by kind of celebration (hearts, wedding, party, birthday, baby,
    bar/bat mitzvah, nature, fun). Single-colour icons take any colour (black, red, soft red, dark red, gold…);
-   colourful emoji are added as images. Artwork: Google Material Symbols and Noto Emoji (Apache 2.0, see
-   `public/icons/LICENSE.md`); the list is `src/icons/catalog.js`, and `npm run icons` fetches the artwork.
-6. **Backup:** "גיבוי ZIP" downloads all templates as one zip. "שחזור מגיבוי" adds the templates from a zip
+   colourful emoji are added as images. Artwork: Phosphor, MingCute and Microsoft Fluent Emoji (MIT / Apache 2.0,
+   see `public/icons/LICENSE.md`); the list is `src/icons/catalog.js`, and `npm run icons` fetches the artwork.
+6. **Hearts inside text:** the text panel has a row of symbols (hearts, rings, sparkles) that go into the text
+   at the cursor, e.g. "עדן ♥ אביב". They come from a small bundled font, so they print in the text's colour.
+   The list is `src/fonts/textSymbols.json`; `scripts/build-symbol-font.py` rebuilds the font.
+7. **Backup:** "גיבוי ZIP" downloads all templates as one zip. "שחזור מגיבוי" adds the templates from a zip
    as new copies (nothing is overwritten).
 
 ## Development

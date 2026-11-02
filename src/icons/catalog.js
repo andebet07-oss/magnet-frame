@@ -1,10 +1,11 @@
 // Icon catalogue: what the icon picker offers, grouped by kind of celebration, with Hebrew names.
 //
-// - 'symbol' icons are single-colour vectors from Google Material Symbols (Rounded). They can take
-//   any colour, e.g. a black, red, soft red or dark red heart.
-// - 'emoji' icons are colourful illustrations from Google Noto Emoji.
-// Both are Apache License 2.0 (public/icons/LICENSE.md). After editing these lists run
-// `npm run icons` to fetch the artwork into src/icons/symbolPaths.js and public/icons/noto/.
+// - 'symbol' icons are single-colour vectors that take any colour, e.g. a black, red or dark red heart.
+//   `src` is "<set>:<name>": Phosphor ("ph", MIT), MingCute ("mingcute", Apache-2.0), or the rings
+//   drawn for this app ("custom", src/icons/customPaths.json).
+// - 'emoji' icons are colourful illustrations from Microsoft Fluent Emoji (MIT).
+// Licences: public/icons/LICENSE.md. After editing these lists run `npm run icons` to write the
+// artwork into src/icons/symbolPaths.js and public/icons/emoji/.
 
 export const ICON_CATEGORIES = [
   { id: 'hearts', label: 'לבבות' },
@@ -31,90 +32,93 @@ export const ICON_COLORS = [
   { label: 'לבן', value: '#FFFFFF' },
 ];
 
-export const DEFAULT_ICON_COLOR = '#E0282E';
+// Black, like the hearts on most magnets.
+export const DEFAULT_ICON_COLOR = '#111111';
 
-// `file` is the Material Symbols Rounded file: <folder>/<name>.svg in google/material-design-icons.
-const symbol = (id, label, file, categories) => ({ kind: 'symbol', id, label, file, categories });
+const symbol = (id, label, src, categories) => ({ kind: 'symbol', id, label, src, categories });
 
 export const SYMBOLS = [
-  symbol('heart', 'לב', 'favorite/favorite_fill1_24px', ['hearts', 'love']),
-  symbol('heart-line-thin', 'לב בקו דק', 'favorite/favorite_wght100_24px', ['hearts', 'love']),
-  symbol('heart-line', 'לב בקו', 'favorite/favorite_24px', ['hearts']),
-  symbol('heart-line-bold', 'לב בקו עבה', 'favorite/favorite_wght700_24px', ['hearts']),
-  symbol('hand-heart', 'יד עם לב', 'volunteer_activism/volunteer_activism_fill1_24px', ['hearts', 'love']),
-  symbol('diamond', 'יהלום', 'diamond/diamond_fill1_24px', ['love']),
-  symbol('flower', 'פרח', 'local_florist/local_florist_fill1_24px', ['love', 'nature']),
-  symbol('flower-round', 'פרח עגול', 'filter_vintage/filter_vintage_fill1_24px', ['love', 'nature']),
-  symbol('wine', 'כוס יין', 'wine_bar/wine_bar_fill1_24px', ['love', 'mitzvah']),
-  symbol('cocktail', 'קוקטייל', 'local_bar/local_bar_fill1_24px', ['party']),
-  symbol('confetti', 'קונפטי', 'celebration/celebration_fill1_24px', ['party', 'birthday']),
-  symbol('sparkles', 'נצנצים', 'auto_awesome/auto_awesome_fill1_24px', ['party', 'mitzvah', 'love']),
-  symbol('star', 'כוכב', 'star/star_fill1_24px', ['party']),
-  symbol('star-round', 'כוכב מעוגל', 'kid_star/kid_star_fill1_24px', ['party', 'baby']),
-  symbol('music', 'תו', 'music_note/music_note_fill1_24px', ['party']),
-  symbol('nightlife', 'מסיבה', 'nightlife/nightlife_fill1_24px', ['party']),
-  symbol('crown', 'כתר', 'crown/crown_fill1_24px', ['mitzvah', 'party', 'birthday']),
-  symbol('gift', 'מתנה', 'redeem/redeem_fill1_24px', ['birthday']),
-  symbol('cake', 'עוגה', 'cake/cake_fill1_24px', ['birthday']),
-  symbol('icecream', 'גלידה', 'icecream/icecream_fill1_24px', ['birthday', 'fun']),
-  symbol('baby', 'תינוק', 'child_care/child_care_fill1_24px', ['baby']),
-  symbol('stroller', 'עגלה', 'stroller/stroller_fill1_24px', ['baby']),
-  symbol('crib', 'עריסה', 'crib/crib_fill1_24px', ['baby']),
-  symbol('toys', 'צעצוע', 'toys/toys_fill1_24px', ['baby']),
-  symbol('bird', 'ציפור', 'flutter_dash/flutter_dash_fill1_24px', ['baby', 'nature']),
-  symbol('synagogue', 'בית כנסת', 'synagogue/synagogue_fill1_24px', ['mitzvah']),
-  symbol('lotus', 'לוטוס', 'spa/spa_fill1_24px', ['nature']),
-  symbol('leaf', 'עלה', 'eco/eco_fill1_24px', ['nature']),
-  symbol('sun', 'שמש', 'sunny/sunny_fill1_24px', ['nature']),
-  symbol('moon', 'ירח', 'bedtime/bedtime_fill1_24px', ['nature']),
-  symbol('bee', 'דבורה', 'emoji_nature/emoji_nature_fill1_24px', ['nature', 'fun']),
-  symbol('paw', 'כף רגל', 'pets/pets_fill1_24px', ['fun']),
-];
-
-// Hand-drawn here (the emoji versions sit on a purple tile). 100×100 box, centred at 50,50.
-function hexagramPoints(radius, angles) {
-  return angles.map((deg) => {
-    const rad = (deg * Math.PI) / 180;
-    return `${(50 + radius * Math.sin(rad)).toFixed(2)} ${(50 - radius * Math.cos(rad)).toFixed(2)}`;
-  });
-}
-const triangle = (radius, angles) => `M${hexagramPoints(radius, angles).join(' L')} Z`;
-const R = 48;
-const LINE = 5.5;
-export const CUSTOM_SYMBOLS = [
-  {
-    kind: 'symbol',
-    id: 'star-of-david',
-    label: 'מגן דוד',
-    categories: ['mitzvah'],
-    viewBox: [0, 0, 100, 100],
-    path: `${triangle(R, [0, 120, 240])} ${triangle(R, [180, 300, 60])}`,
-  },
-  {
-    kind: 'symbol',
-    id: 'star-of-david-line',
-    label: 'מגן דוד בקו',
-    categories: ['mitzvah'],
-    viewBox: [0, 0, 100, 100],
-    // Each triangle is a ring: outer clockwise, inner counter-clockwise, so the middle stays open.
-    path: [
-      triangle(R, [0, 120, 240]),
-      triangle(R - 2 * LINE, [0, 240, 120]),
-      triangle(R, [180, 300, 60]),
-      triangle(R - 2 * LINE, [180, 60, 300]),
-    ].join(' '),
-  },
+  // Hearts
+  symbol('heart', 'לב', 'ph:heart-fill', ['hearts', 'love']),
+  symbol('heart-line', 'לב בקו', 'ph:heart-light', ['hearts', 'love']),
+  symbol('heart-thin', 'לב בקו דק', 'ph:heart-thin', ['hearts']),
+  symbol('heart-straight', 'לב מחודד', 'ph:heart-straight-fill', ['hearts']),
+  symbol('heart-straight-thin', 'לב מחודד בקו דק', 'ph:heart-straight-thin', ['hearts']),
+  symbol('two-hearts', 'שני לבבות', 'mingcute:love-fill', ['hearts', 'love']),
+  symbol('two-hearts-line', 'שני לבבות בקו', 'mingcute:love-line', ['hearts', 'love']),
+  symbol('hand-heart', 'יד עם לב', 'ph:hand-heart-light', ['hearts', 'love']),
+  symbol('heartbeat', 'דופק', 'ph:heartbeat-light', ['hearts']),
+  symbol('calendar-heart', 'תאריך עם לב', 'ph:calendar-heart-light', ['hearts', 'love']),
+  // Wedding and love
+  symbol('rings', 'טבעות', 'custom:rings', ['love', 'hearts']),
+  symbol('diamond-ring', 'טבעת יהלום', 'custom:diamond-ring', ['love']),
+  symbol('champagne', 'שמפניה', 'ph:champagne-light', ['love', 'party']),
+  symbol('cheers', 'לחיים', 'ph:cheers-light', ['love', 'party']),
+  symbol('wine', 'כוס יין', 'ph:wine-light', ['love', 'mitzvah']),
+  symbol('tulip', 'צבעוני', 'ph:flower-tulip-light', ['love', 'nature']),
+  symbol('bird', 'ציפור', 'ph:bird-light', ['love', 'baby']),
+  symbol('sparkle', 'נצנוץ', 'ph:sparkle-light', ['love', 'party', 'mitzvah']),
+  // Party
+  symbol('confetti', 'קונפטי', 'ph:confetti-light', ['party', 'birthday']),
+  symbol('sparkle-fill', 'נצנוץ מלא', 'ph:sparkle-fill', ['party']),
+  symbol('star-four', 'כוכב נוצץ', 'ph:star-four-fill', ['party', 'mitzvah', 'baby']),
+  symbol('disco-ball', 'כדור דיסקו', 'ph:disco-ball-light', ['party', 'fun']),
+  symbol('music', 'תווים', 'ph:music-notes-light', ['party']),
+  symbol('cocktail', 'קוקטייל', 'ph:martini-light', ['party']),
+  symbol('microphone', 'מיקרופון', 'ph:microphone-stage-light', ['party', 'fun']),
+  symbol('crown', 'כתר', 'ph:crown-simple-fill', ['party', 'birthday', 'mitzvah']),
+  // Birthday
+  symbol('cake', 'עוגה', 'ph:cake-light', ['birthday']),
+  symbol('gift', 'מתנה', 'ph:gift-light', ['birthday']),
+  symbol('balloon', 'בלון', 'ph:balloon-light', ['birthday', 'party']),
+  symbol('ice-cream', 'גלידה', 'ph:ice-cream-light', ['birthday', 'fun']),
+  symbol('star', 'כוכב', 'ph:star-light', ['birthday', 'baby']),
+  // Baby
+  symbol('baby', 'תינוק', 'ph:baby-light', ['baby']),
+  symbol('stroller', 'עגלה', 'ph:baby-carriage-light', ['baby']),
+  symbol('moon-stars', 'ירח וכוכבים', 'ph:moon-stars-light', ['baby', 'nature']),
+  symbol('cloud', 'ענן', 'ph:cloud-light', ['baby']),
+  symbol('rainbow', 'קשת', 'ph:rainbow-light', ['baby', 'fun']),
+  symbol('butterfly', 'פרפר', 'ph:butterfly-light', ['baby', 'nature']),
+  symbol('feather', 'נוצה', 'ph:feather-light', ['baby']),
+  // Bar and bat mitzvah
+  symbol('star-of-david', 'מגן דוד', 'ph:star-of-david-light', ['mitzvah']),
+  symbol('star-of-david-fill', 'מגן דוד מלא', 'ph:star-of-david-fill', ['mitzvah']),
+  symbol('scroll', 'מגילה', 'ph:scroll-light', ['mitzvah']),
+  symbol('book', 'ספר', 'ph:book-open-light', ['mitzvah']),
+  symbol('crown-line', 'כתר בקו', 'ph:crown-light', ['mitzvah', 'birthday']),
+  // Flowers and nature
+  symbol('flower', 'פרח', 'ph:flower-light', ['nature', 'love']),
+  symbol('lotus', 'לוטוס', 'ph:flower-lotus-light', ['nature']),
+  symbol('leaf', 'עלה', 'ph:leaf-light', ['nature']),
+  symbol('plant', 'נבט', 'ph:plant-light', ['nature', 'baby']),
+  symbol('sun', 'שמש', 'ph:sun-light', ['nature']),
+  symbol('sunset', 'שקיעה', 'ph:sun-horizon-light', ['nature', 'love']),
+  symbol('palm', 'דקל', 'ph:tree-palm-light', ['nature', 'fun']),
+  symbol('waves', 'גלים', 'ph:waves-light', ['nature']),
+  symbol('clover', 'תלתן', 'ph:clover-light', ['nature']),
+  // Fun
+  symbol('smiley', 'סמיילי', 'ph:smiley-light', ['fun']),
+  symbol('wink', 'קריצה', 'ph:smiley-wink-light', ['fun']),
+  symbol('sunglasses', 'משקפי שמש', 'ph:sunglasses-light', ['fun']),
+  symbol('peace', 'שלום', 'ph:hand-peace-light', ['fun']),
+  symbol('fire', 'אש', 'ph:fire-light', ['fun']),
+  symbol('lightning', 'ברק', 'ph:lightning-light', ['fun']),
+  symbol('camera', 'מצלמה', 'ph:camera-light', ['fun', 'party']),
+  symbol('popcorn', 'פופקורן', 'ph:popcorn-light', ['fun']),
+  symbol('paw', 'כף רגל', 'ph:paw-print-light', ['fun']),
 ];
 
 const emoji = (id, label, categories) => ({ kind: 'emoji', id, label, categories });
 
-// `id` is the Noto Emoji name in the Iconify "noto" set.
+// `id` is the emoji name in the Iconify "fluent-emoji" set.
 export const EMOJI = [
   emoji('red-heart', 'לב אדום', ['hearts', 'love']),
   emoji('black-heart', 'לב שחור', ['hearts']),
   emoji('white-heart', 'לב לבן', ['hearts', 'love']),
   emoji('pink-heart', 'לב ורוד', ['hearts', 'baby']),
   emoji('light-blue-heart', 'לב תכלת', ['hearts', 'baby']),
+  emoji('purple-heart', 'לב סגול', ['hearts']),
   emoji('two-hearts', 'שני לבבות', ['hearts', 'love']),
   emoji('sparkling-heart', 'לב נוצץ', ['hearts', 'love']),
   emoji('growing-heart', 'לב גדל', ['hearts']),
@@ -122,8 +126,8 @@ export const EMOJI = [
   emoji('revolving-hearts', 'לבבות', ['hearts', 'love']),
   emoji('heart-with-arrow', 'לב עם חץ', ['hearts', 'love']),
   emoji('heart-with-ribbon', 'לב עם סרט', ['hearts', 'love']),
-  emoji('heart-exclamation', 'לב קריאה', ['hearts']),
   emoji('heart-on-fire', 'לב בוער', ['hearts', 'fun']),
+  emoji('heart-hands', 'ידיים בצורת לב', ['hearts', 'fun']),
   emoji('love-letter', 'מכתב אהבה', ['hearts', 'love']),
   emoji('kiss-mark', 'נשיקה', ['hearts', 'love', 'fun']),
   emoji('ring', 'טבעת', ['love']),
@@ -139,8 +143,8 @@ export const EMOJI = [
   emoji('confetti-ball', 'כדור קונפטי', ['party']),
   emoji('sparkles', 'נצנצים', ['party', 'mitzvah', 'love']),
   emoji('glowing-star', 'כוכב זוהר', ['party', 'mitzvah']),
+  emoji('shooting-star', 'כוכב נופל', ['party', 'baby']),
   emoji('star', 'כוכב', ['party']),
-  emoji('dizzy', 'כוכב מסתחרר', ['party']),
   emoji('mirror-ball', 'כדור דיסקו', ['party', 'fun']),
   emoji('musical-notes', 'תווים', ['party']),
   emoji('balloon', 'בלון', ['party', 'birthday']),
@@ -152,8 +156,8 @@ export const EMOJI = [
   emoji('candle', 'נר', ['birthday', 'mitzvah']),
   emoji('wrapped-gift', 'מתנה', ['birthday', 'party']),
   emoji('partying-face', 'פרצוף חוגג', ['birthday', 'fun']),
+  emoji('unicorn', 'חד קרן', ['birthday', 'fun']),
   emoji('lollipop', 'סוכרייה', ['birthday', 'baby']),
-  emoji('candy', 'ממתק', ['birthday']),
   emoji('baby', 'תינוק', ['baby']),
   emoji('baby-bottle', 'בקבוק', ['baby']),
   emoji('teddy-bear', 'דובי', ['baby']),
@@ -167,6 +171,7 @@ export const EMOJI = [
   emoji('blossom', 'פרח', ['nature']),
   emoji('sunflower', 'חמנייה', ['nature']),
   emoji('hibiscus', 'היביסקוס', ['nature']),
+  emoji('lotus', 'לוטוס', ['nature']),
   emoji('herb', 'עלים', ['nature']),
   emoji('leaf-fluttering-in-wind', 'עלה ברוח', ['nature']),
   emoji('four-leaf-clover', 'תלתן', ['nature', 'mitzvah']),
@@ -177,6 +182,7 @@ export const EMOJI = [
   emoji('smiling-face-with-heart-eyes', 'עיני לב', ['fun', 'hearts']),
   emoji('smiling-face-with-hearts', 'מאוהבים', ['fun', 'love']),
   emoji('face-blowing-a-kiss', 'נשיקה באוויר', ['fun', 'love']),
+  emoji('star-struck', 'עיני כוכבים', ['fun']),
   emoji('smiling-face-with-sunglasses', 'משקפי שמש', ['fun']),
   emoji('fire', 'אש', ['fun']),
   emoji('camera-with-flash', 'מצלמה', ['fun']),
@@ -184,7 +190,7 @@ export const EMOJI = [
 
 export function iconsIn(categoryId) {
   const inCategory = (i) => i.categories.includes(categoryId);
-  return { symbols: [...SYMBOLS, ...CUSTOM_SYMBOLS].filter(inCategory), emoji: EMOJI.filter(inCategory) };
+  return { symbols: SYMBOLS.filter(inCategory), emoji: EMOJI.filter(inCategory) };
 }
 
-export const emojiUrl = (id) => `/icons/noto/${id}.svg`;
+export const emojiUrl = (id) => `/icons/emoji/${id}.svg`;
