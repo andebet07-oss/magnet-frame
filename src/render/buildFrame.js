@@ -16,7 +16,8 @@ export const U = 10;
  * @param doc       template document
  * @param getImage  (path) => HTMLImageElement | null
  * @param pxPerMm   output scale
- * @param photo     what fills the photo area: 'placeholder' (grey + label) or 'sample' (the sample photo, if any)
+ * @param photo     what fills the photo area: 'placeholder' (grey + label), 'sample' (the sample photo, if any)
+ *                  or 'cutout' (a transparent hole, for the print file)
  * @returns Konva.Group whose (0,0) is the top-left of the cut line, clipped to the bleed box
  */
 export function buildFrame(doc, { getImage, pxPerMm, photo = 'placeholder' }) {
@@ -107,6 +108,21 @@ function photoWindowPath(ctx, el, w, h) {
 function buildPhotoArea(el, doc, getImage, mode) {
   const attrs = boxAttrs(el);
   const { width: w, height: h } = attrs;
+  if (mode === 'cutout') {
+    // Print file: erase everything drawn so far inside the window; layers above it still draw on top.
+    return new Konva.Shape({
+      ...attrs,
+      opacity: 1,
+      fill: '#000',
+      globalCompositeOperation: 'destination-out',
+      sceneFunc: (ctx, shape) => {
+        ctx.beginPath();
+        photoWindowPath(ctx, el, w, h);
+        ctx.closePath();
+        ctx.fillStrokeShape(shape);
+      },
+    });
+  }
   const group = new Konva.Group({ ...attrs, clipFunc: (ctx) => photoWindowPath(ctx, el, w, h) });
   // Konva sizes a group by its children and ignores the clip, so a zoomed sample photo would make the
   // selection handles far bigger than the window. The area's bounds are the window itself.

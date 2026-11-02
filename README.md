@@ -22,7 +22,10 @@ Templates are stored in a dedicated Supabase project; there is no other server.
 6. **Hearts inside text:** the text panel has a row of symbols (hearts, rings, sparkles) that go into the text
    at the cursor, e.g. "עדן ♥ אביב". They come from a small bundled font, so they print in the text's colour.
    The list is `src/fonts/textSymbols.json`; `scripts/build-symbol-font.py` rebuilds the font.
-7. **Backup:** "גיבוי ZIP" downloads all templates as one zip. "שחזור מגיבוי" adds the templates from a zip
+7. **Print file:** "ייצוא PNG" in the editor downloads the frame as a PNG at 25 px per mm (2500×1875 for a
+   10×7.5 magnet, 1875×2500 portrait): the cut-line area only, with the photo window transparent. Layers above
+   the photo area (a heart, text) stay in the file.
+8. **Backup:** "גיבוי ZIP" downloads all templates as one zip. "שחזור מגיבוי" adds the templates from a zip
    as new copies (nothing is overwritten).
 
 ## Development

@@ -3,7 +3,9 @@ import Button, { IconButton } from '@/ui/Button';
 import Icon from '@/ui/icons';
 import { notify } from '@/ui/toast';
 import { createImage, createPhotoArea, createShape, createText } from '@/model/schema';
-import { splitExtension } from '@/model/names';
+import { sanitizeName, splitExtension } from '@/model/names';
+import { renderPrintPng } from '@/render/renderToCanvas';
+import { downloadBlob } from '@/storage/backupZip';
 import { useDoc, useEditor } from '@/store/editorStore';
 import { useEditorContext } from './EditorContext';
 import IconPicker from './IconPicker';
@@ -31,6 +33,7 @@ export default function Toolbar({ status, onClose }) {
   const hasSample = Boolean(doc.preview?.photo);
   const fileRef = useRef(null);
   const [iconsOpen, setIconsOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const saveState = STATUS[status] ?? STATUS.saved;
 
   async function onImagePicked(e) {
@@ -43,6 +46,18 @@ export default function Toolbar({ status, onClose }) {
     } catch (err) {
       console.error('[toolbar] image import failed:', err);
       notify(imageUploadMessage(err));
+    }
+  }
+
+  async function exportPng() {
+    setExporting(true);
+    try {
+      downloadBlob(await renderPrintPng(doc, ctx.assets), `${sanitizeName(doc.name)}.png`);
+    } catch (err) {
+      console.error('[toolbar] PNG export failed:', err);
+      notify('הייצוא נכשל. נסה שוב.');
+    } finally {
+      setExporting(false);
     }
   }
 
@@ -118,6 +133,11 @@ export default function Toolbar({ status, onClose }) {
       <IconButton label="התאמה למסך" onClick={() => setZoom(1)}>
         <Icon name="fit" />
       </IconButton>
+      <span className="w-px h-6 bg-ink-700 mx-1" />
+      <Button variant="primary" onClick={exportPng} disabled={exporting} title="קובץ PNG להדפסה: החלון של התמונה שקוף">
+        <Icon name="download" />
+        {exporting ? 'מייצא…' : 'ייצוא PNG'}
+      </Button>
     </header>
   );
 }

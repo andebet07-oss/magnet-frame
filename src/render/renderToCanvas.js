@@ -39,6 +39,19 @@ export async function renderThumbnail(doc, assets) {
   return canvasToBlob(canvas);
 }
 
+/** Print files are 25 px per mm: a 10×7.5 cm magnet is 2500×1875 px, the size print software expects. */
+export const PRINT_PX_PER_MM = 25;
+
+export function printPixelSize({ widthMm, heightMm }) {
+  return { width: Math.round(widthMm * PRINT_PX_PER_MM), height: Math.round(heightMm * PRINT_PX_PER_MM) };
+}
+
+/** The print file: the cut-line area only, with the photo window transparent. */
+export async function renderPrintPng(doc, assets) {
+  const canvas = await renderFrameToCanvas(doc, { assets, pxPerMm: PRINT_PX_PER_MM, area: 'trim', photo: 'cutout' });
+  return canvasToBlob(canvas);
+}
+
 export function canvasToBlob(canvas, type = 'image/png') {
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('Canvas export failed'))), type);

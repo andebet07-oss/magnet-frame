@@ -139,3 +139,18 @@ describe('elements', () => {
     expect(assetPathsOf(doc)).toEqual(['assets/bg.jpg', 'assets/leaf.svg']);
   });
 });
+
+describe('print file size', async () => {
+  const { printPixelSize } = await import('@/render/renderToCanvas');
+  const { presetSize } = await import('@/model/presets');
+
+  it('is 2500×1875 for the regular magnet, the size print software expects', () => {
+    expect(printPixelSize(presetSize('regular', 'landscape'))).toEqual({ width: 2500, height: 1875 });
+    expect(printPixelSize(presetSize('regular', 'portrait'))).toEqual({ width: 1875, height: 2500 });
+  });
+
+  it('keeps 25 px per mm for the other sizes', () => {
+    expect(printPixelSize(presetSize('large', 'landscape'))).toEqual({ width: 3750, height: 2500 });
+    expect(printPixelSize(presetSize('square', 'landscape'))).toEqual({ width: 2500, height: 2500 });
+  });
+});
