@@ -1,0 +1,3 @@
+# Supabase CLI config. Only the project id is set; everything else uses CLI defaults.
+# Production deploys from GitHub apply only new files in migrations/ (Auth and API settings here are ignored).
+project_id = "magnet-frame"
