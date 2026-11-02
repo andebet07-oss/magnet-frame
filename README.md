@@ -1,50 +1,72 @@
 # Magnet Frame Studio
 
-A personal, local-first tool for designing print-ready magnet frames (10×15 cm) before an event.
-No backend, no account, no network calls: templates are plain files in a folder you choose.
+A personal tool for designing print-ready magnet frames (10×15 cm) before an event.
+Open it from any browser, sign in with your email, and see the same templates everywhere.
+Templates are stored in a dedicated Supabase project; there is no other server.
 
-## Run it
+**Live:** https://magnet-frame.vercel.app (Vercel deploys every push to `claude/hopeful-feynman-ohyurh`).
 
-Requires **Chrome or Edge on a desktop** (only they let a web page read and write a local folder) and Node 20.19+.
+## Using it
+
+1. Open the site and enter your email. A one-time sign-in link arrives by email; open it **in the same browser**.
+   The browser then remembers you; a new browser or computer needs one more link.
+2. The library lists your templates. Everything you change in the editor is saved to the cloud one second later.
+3. **No connection?** Keep working. A banner says the changes aren't saved yet; they are saved as soon as the
+   connection returns. Leaving the editor with unsaved changes asks first.
+4. **Same template open in two places?** A save never silently overwrites a newer one: the editor asks which
+   version to keep.
+5. **Backup:** "גיבוי ZIP" downloads all templates as one zip. "שחזור מגיבוי" adds the templates from a zip
+   as new copies (nothing is overwritten).
+
+## Development
+
+Node 20.19+.
 
 ```bash
 npm install
 ```
 
 ```bash
-npm run app
+npm run dev
 ```
-
-`npm run app` builds the app and opens it on `http://localhost:4173`. The first time, choose an empty folder for your templates; the app remembers it. On later visits Chrome may ask you to allow the folder again with one click ("Allow on every visit" skips that).
 
 | Command | What it does |
 |---|---|
-| `npm run app` | Build and open the app locally |
 | `npm run dev` | Development server with hot reload |
-| `npm test` | Unit tests (units, names, schema, undo, font registry) |
+| `npm run app` | Build and open the production build locally |
+| `npm test` | Unit tests: model, undo, fonts, sign-in errors, cloud storage, saver, zip backup |
 | `npm run fonts` | Regenerate `src/fonts/fonts.css` after editing `src/fonts/registry.js` |
+
+Database and storage rules live in `supabase/` (see `supabase/README.md`). New files in `supabase/migrations/`
+are applied to the database automatically when pushed.
 
 ## Status
 
-Built in four stages; each stops for review.
+1. **Editor basics** ✅ library, canvas with cut line and safe area, layers, text / image / shape elements, undo, keyboard.
+2. **Cloud storage** ✅ email sign-in, templates and images in Supabase, offline handling, conflict protection, zip backup.
+3. Photo area and preview with a sample photo (pan and zoom).
+4. Event settings, bound fields, duplicate template, tag filter.
+5. Export: PNG and PDF at print size with bleed, clean and guides versions.
 
-1. **Editor basics** ✅ library, canvas with cut line and safe area, layers, text / image / shape elements, undo, keyboard, autosave and reopen.
-2. Photo area and preview with a sample photo (pan and zoom).
-3. Event settings, bound fields, duplicate template, tag filter.
-4. Export: PNG and PDF at print size with bleed, clean and guides versions, zip backup.
+## Where templates live
 
-## Templates on disk
+| What | Where | Who can reach it |
+|---|---|---|
+| The design (`template.json`) | table `templates`, column `doc` | only its owner (row level security) |
+| Images | private bucket `template-files`, `{user}/{template}/assets/<file>` | only its owner |
+| Library preview | same bucket, `{user}/{template}/thumbnail.png` | only its owner |
+
+Inside `template.json` an image is referenced as `assets/<file>`. Storage names are ASCII, so an image
+called `לוגו.png` is stored as `image.png`.
+
+A zip backup has one folder per template:
 
 ```
-<your folder>/
-  חתונה קלאסית/            one folder per template (named after it)
-    template.json          the design
-    thumbnail.png          preview for the library (regenerated automatically)
-    assets/                copies of images you added (logo, decorations, background)
+חתונה קלאסית/
+  template.json
+  thumbnail.png
+  assets/leaf.svg
 ```
-
-Folders starting with `.` or `_` are ignored, so the app can add its own (e.g. `_exports/` in stage 4).
-Templates can be copied, backed up or edited outside the app; a folder without a valid `template.json` is skipped.
 
 ### template.json
 
@@ -96,10 +118,12 @@ All Hebrew fonts include niqqud except Playpen Sans Hebrew (the picker marks it)
 src/
   model/        pure logic: units, schema + migration, element ops, names, text direction
   store/        editor state (zustand) and undo history
-  storage/      folder access, template files, assets, autosave
+  storage/      cloud repo + Supabase gateway, image cache, autosave, zip backup
+  auth/         sign-in screen and session
+  lib/          the Supabase client
   render/       buildFrame() — the single renderer used by editor, thumbnails and export
   fonts/        font registry, generated fonts.css, font loading
-  screens/      library (folder gate, grid) and editor (canvas, toolbar, layers, properties)
+  screens/      library (grid, backup) and editor (canvas, toolbar, layers, properties, sync banner)
   ui/           buttons, fields, dialogs, icons, toasts
 ```
 
