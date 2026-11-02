@@ -4,6 +4,7 @@
 import Konva from 'konva';
 import { coverCrop, frameBoxes, ptToMm } from '@/model/units';
 import { detectDirection } from '@/model/text';
+import { photoPlacement } from '@/model/photo';
 
 // Konva world units per mm. Working in 0.1 mm keeps canvas font sizes in a normal pixel range
 // (an 18 pt title is 63.5 units, not 6.35), so text measurement and line breaks are stable
@@ -14,9 +15,10 @@ export const U = 10;
  * @param doc       template document
  * @param getImage  (path) => HTMLImageElement | null
  * @param pxPerMm   output scale
+ * @param photo     what fills the photo area: 'placeholder' (grey + label) or 'sample' (the sample photo, if any)
  * @returns Konva.Group whose (0,0) is the top-left of the cut line, clipped to the bleed box
  */
-export function buildFrame(doc, { getImage, pxPerMm }) {
+export function buildFrame(doc, { getImage, pxPerMm, photo = 'placeholder' }) {
   const { bleed } = frameBoxes(doc.size);
   const world = new Konva.Group({
     name: 'world',
@@ -29,7 +31,7 @@ export function buildFrame(doc, { getImage, pxPerMm }) {
   });
   for (const el of doc.elements) {
     if (el.visible === false) continue;
-    const node = buildElement(el, doc, getImage);
+    const node = el.type === 'photo' ? buildPhotoArea(el, doc, getImage, photo) : buildElement(el, doc, getImage);
     if (node) world.add(node);
   }
   return world;
@@ -82,6 +84,54 @@ function buildBackground(el, size, getImage) {
     const crop = iw && ih ? coverCrop(iw, ih, box.width, box.height) : undefined;
     group.add(new Konva.Image({ ...box, image: img, crop }));
   }
+  return group;
+}
+
+const PLACEHOLDER_FILL = '#D7DBE2';
+const PLACEHOLDER_INK = '#7B8190';
+
+/** Outline of the photo window in its own coordinates: rectangle (optionally rounded) or ellipse. */
+function photoWindowPath(ctx, el, w, h) {
+  if (el.shape === 'ellipse') {
+    ctx.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+    return;
+  }
+  const r = Math.min((el.cornerRadiusMm || 0) * U, w / 2, h / 2);
+  if (r > 0) ctx.roundRect(0, 0, w, h, r);
+  else ctx.rect(0, 0, w, h);
+}
+
+function buildPhotoArea(el, doc, getImage, mode) {
+  const attrs = boxAttrs(el);
+  const { width: w, height: h } = attrs;
+  const group = new Konva.Group({ ...attrs, clipFunc: (ctx) => photoWindowPath(ctx, el, w, h) });
+  // Konva sizes a group by its children and ignores the clip, so a zoomed sample photo would make the
+  // selection handles far bigger than the window. The area's bounds are the window itself.
+  group.getClientRect = (config = {}) => {
+    const rect = { x: 0, y: 0, width: w, height: h };
+    return config.skipTransform ? rect : group._transformedRect(rect, config.relativeTo);
+  };
+  const sample = mode === 'sample' && doc.preview?.photo ? getImage(doc.preview.photo) : null;
+  if (sample) {
+    const placement = photoPlacement(w, h, sample.naturalWidth || sample.width, sample.naturalHeight || sample.height, doc.preview);
+    group.add(new Konva.Image({ name: 'samplePhoto', image: sample, ...placement }));
+    return group;
+  }
+  group.add(new Konva.Rect({ width: w, height: h, fill: PLACEHOLDER_FILL }));
+  group.add(
+    new Konva.Text({
+      width: w,
+      height: h,
+      text: 'התמונה כאן',
+      fontFamily: 'Heebo',
+      fontSize: Math.min(w, h) * 0.1,
+      fill: PLACEHOLDER_INK,
+      align: 'center',
+      verticalAlign: 'middle',
+      direction: 'rtl',
+      listening: false,
+    }),
+  );
   return group;
 }
 

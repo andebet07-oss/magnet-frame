@@ -17,6 +17,8 @@ export default function CanvasView() {
   const doc = useDoc();
   const selectedId = useEditor((s) => s.selectedId);
   const zoom = useEditor((s) => s.zoom);
+  const showSample = useEditor((s) => s.showSample);
+  const panPhoto = useEditor((s) => s.panPhoto);
   const { assets } = useEditorContext();
   const viewportRef = useRef(null);
   const hostRef = useRef(null);
@@ -24,7 +26,7 @@ export default function CanvasView() {
   const version = useRenderDeps(doc, assets);
   const pxPerMm = fitPxPerMm(doc.size, viewport) * zoom;
 
-  useFrameStage(hostRef, { doc, pxPerMm, selectedId, getImage: assets.get, version });
+  useFrameStage(hostRef, { doc, pxPerMm, selectedId, getImage: assets.get, version, showSample, panPhoto });
 
   return (
     // The canvas area is LTR: positions in the file are measured from the left edge.

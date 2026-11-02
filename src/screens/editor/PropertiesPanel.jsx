@@ -3,8 +3,9 @@ import Icon from '@/ui/icons';
 import { useDoc, useEditor, useSelected } from '@/store/editorStore';
 import { GeometryProps, ShapeProps, TextProps } from './props/ElementProps';
 import { BackgroundProps, TemplateInfo } from './props/FrameProps';
+import PhotoProps from './props/PhotoProps';
 
-const TITLES = { text: 'טקסט', image: 'תמונה', shape: 'צורה' };
+const TITLES = { photo: 'אזור תמונה', text: 'טקסט', image: 'תמונה', shape: 'צורה' };
 
 export default function PropertiesPanel() {
   const doc = useDoc();
@@ -20,6 +21,7 @@ export default function PropertiesPanel() {
             <h2 className="flex-1 text-sm font-semibold">{TITLES[el.type] ?? el.name}</h2>
             {el.locked && <span className="text-xs text-ink-400">נעול</span>}
           </div>
+          {el.type === 'photo' && <PhotoProps el={el} />}
           {el.type === 'text' && <TextProps el={el} />}
           {el.type === 'shape' && <ShapeProps el={el} />}
           <GeometryProps el={el} />

@@ -1,4 +1,5 @@
 // In-memory stand-in for supabaseGateway.js, with the same revision rules as the database trigger.
+// Used by the unit tests and by the local demo mode (npm run dev, then open /?demo).
 // Set `gateway.offline = true` to make every call fail like a dropped connection.
 
 export function createMemoryGateway() {
@@ -78,7 +79,8 @@ export function createMemoryGateway() {
     },
     async signedUrls(keys) {
       gateway.check('signedUrls');
-      return keys.map((k) => (files.has(k) ? { path: k, signedUrl: `memory://${k}`, error: null } : { path: k, signedUrl: null, error: 'Object not found' }));
+      const urlFor = (k) => (typeof window === 'undefined' ? `memory://${k}` : URL.createObjectURL(files.get(k).blob));
+      return keys.map((k) => (files.has(k) ? { path: k, signedUrl: urlFor(k), error: null } : { path: k, signedUrl: null, error: 'Object not found' }));
     },
   };
   return gateway;

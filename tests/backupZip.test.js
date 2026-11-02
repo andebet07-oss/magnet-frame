@@ -3,7 +3,7 @@ import { strFromU8, unzipSync, zipSync, strToU8 } from 'fflate';
 import { createCloudRepo } from '@/storage/cloudRepo';
 import { exportAllTemplates, importBackup, remapAssetPaths, templateFolders } from '@/storage/backupZip';
 import { createImage } from '@/model/schema';
-import { createMemoryGateway } from './helpers/memoryGateway';
+import { createMemoryGateway } from '@/storage/memoryGateway';
 
 const ALICE = '11111111-1111-4111-8111-111111111111';
 const BOB = '22222222-2222-4222-8222-222222222222';

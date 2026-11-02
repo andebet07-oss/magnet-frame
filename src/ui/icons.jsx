@@ -53,6 +53,13 @@ const paths = {
   alignLeft: <path d="M4 6h16M4 10h10M4 14h16M4 18h10" />,
   grip: <path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01" strokeWidth="3" />,
   chevronDown: <path d="m6 9 6 6 6-6" />,
+  camera: (
+    <>
+      <path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z" />
+      <circle cx="12" cy="13" r="3.5" />
+    </>
+  ),
+  move: <path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3" />,
 };
 
 export default function Icon({ name, className }) {

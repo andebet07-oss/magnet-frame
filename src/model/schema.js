@@ -15,7 +15,10 @@ export const DEFAULT_EVENT = {
   logo: null,
 };
 
-const KNOWN_TYPES = new Set(['background', 'text', 'image', 'shape']);
+const KNOWN_TYPES = new Set(['background', 'photo', 'text', 'image', 'shape']);
+
+/** Sample photo shown in the photo area (editor and thumbnails only, never in the print file). */
+export const DEFAULT_PREVIEW = { photo: null, zoom: 1, focusX: 0.5, focusY: 0.5 };
 
 export function newId(prefix = 'el') {
   return `${prefix}_${crypto.randomUUID().slice(0, 8)}`;
@@ -56,6 +59,17 @@ function base(type, name, size, width, height) {
     rotation: 0,
     opacity: 1,
   };
+}
+
+/**
+ * The window the event photo goes into. In the print file it is transparent; layers above it
+ * (text, decorations) draw over the photo. One per template.
+ */
+export function createPhotoArea(size) {
+  const margin = Math.round(Math.min(size.widthMm, size.heightMm) * 0.06);
+  const width = size.widthMm - 2 * margin;
+  const height = Math.round((size.heightMm - margin) * 0.78);
+  return { ...base('photo', 'אזור תמונה', size, width, height), y: margin, shape: 'rect', cornerRadiusMm: 0 };
 }
 
 export function createText(size, font = DEFAULT_FONT) {
@@ -115,7 +129,7 @@ export function migrateTemplate(raw) {
     event: { ...DEFAULT_EVENT, ...raw.event },
     // Exactly one background, always the bottom layer.
     elements: [{ ...createBackground(), ...background }, ...elements.filter((el) => el.type !== 'background')],
-    preview: raw.preview ?? null,
+    preview: raw.preview ? { ...DEFAULT_PREVIEW, ...raw.preview } : null,
   };
 }
 

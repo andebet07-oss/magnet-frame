@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import Button, { IconButton } from '@/ui/Button';
 import Icon from '@/ui/icons';
 import { notify } from '@/ui/toast';
-import { createImage, createShape, createText } from '@/model/schema';
+import { createImage, createPhotoArea, createShape, createText } from '@/model/schema';
 import { splitExtension } from '@/model/names';
 import { isNetworkError } from '@/storage/errors';
 import { useDoc, useEditor } from '@/store/editorStore';
@@ -40,7 +40,10 @@ export default function Toolbar({ status, onClose }) {
   const canUndo = useEditor((s) => (s.history?.past.length ?? 0) > 0);
   const canRedo = useEditor((s) => (s.history?.future.length ?? 0) > 0);
   const zoom = useEditor((s) => s.zoom);
-  const { undo, redo, addElement, setZoom } = useEditor.getState();
+  const showSample = useEditor((s) => s.showSample);
+  const { undo, redo, addElement, setZoom, setShowSample } = useEditor.getState();
+  const hasPhotoArea = doc.elements.some((e) => e.type === 'photo');
+  const hasSample = Boolean(doc.preview?.photo);
   const fileRef = useRef(null);
   const saveState = STATUS[status] ?? STATUS.saved;
 
@@ -71,6 +74,15 @@ export default function Toolbar({ status, onClose }) {
       </div>
 
       <div className="flex-1 flex items-center justify-center gap-1">
+        <Button
+          variant="ghost"
+          disabled={hasPhotoArea}
+          title={hasPhotoArea ? 'בתבנית כבר יש אזור תמונה' : 'החלון שאליו נכנסת התמונה מהאירוע'}
+          onClick={() => addElement(createPhotoArea(doc.size), 1)}
+        >
+          <Icon name="camera" />
+          אזור תמונה
+        </Button>
         <Button variant="ghost" onClick={() => addElement(createText(doc.size, doc.event.font))}>
           <Icon name="text" />
           טקסט
@@ -91,6 +103,11 @@ export default function Toolbar({ status, onClose }) {
         </IconButton>
       </div>
 
+      {hasSample && (
+        <IconButton label={showSample ? 'הסתרת התמונה לדוגמה' : 'הצגת התמונה לדוגמה'} active={showSample} onClick={() => setShowSample(!showSample)}>
+          <Icon name="eye" />
+        </IconButton>
+      )}
       <IconButton label="ביטול (Ctrl+Z)" onClick={undo} disabled={!canUndo}>
         <Icon name="undo" />
       </IconButton>

@@ -5,6 +5,7 @@ import Konva from 'konva';
 import { buildFrame } from '@/render/buildFrame';
 import { buildGuides } from '@/render/guides';
 import { transformPatch, nodeBox } from '@/render/nodeGeometry';
+import { clampPhotoPosition, focusFromPlacement, ZOOM_MAX, ZOOM_MIN } from '@/model/photo';
 import { frameBoxes } from '@/model/units';
 import { useEditor } from '@/store/editorStore';
 
@@ -34,15 +35,41 @@ function transformerFor(el) {
   return { enabledAnchors: ALL_ANCHORS, keepRatio: el.type === 'image', rotateEnabled: true, borderDash: null };
 }
 
-function attachTransformer(s, doc, selectedId) {
+const findNode = (s, id) => s.world?.findOne((n) => n.id() === id) ?? null;
+
+/**
+ * Selection handles, plus the photo-positioning mode: while it is on, dragging inside the
+ * photo area moves the sample photo (clamped so it always covers the window) instead of the area.
+ */
+function applySelection(s, doc, selectedId, panPhoto) {
   const el = doc.elements.find((e) => e.id === selectedId);
-  const node = el && el.type !== 'background' ? s.world?.findOne((n) => n.id() === selectedId) : null;
+  const photoEl = doc.elements.find((e) => e.type === 'photo');
+  const photoNode = photoEl ? findNode(s, photoEl.id) : null;
+  const sample = photoNode?.findOne('.samplePhoto') ?? null;
+  const panning = Boolean(panPhoto && sample && photoEl.id === selectedId && !photoEl.locked);
+
+  if (photoNode) photoNode.draggable(!photoEl.locked && !panning);
+  if (sample) {
+    sample.draggable(panning);
+    sample.dragBoundFunc(
+      panning
+        ? (pos) => {
+            const toAbsolute = photoNode.getAbsoluteTransform().copy();
+            const local = toAbsolute.copy().invert().point(pos);
+            return toAbsolute.point(clampPhotoPosition(photoNode.width(), photoNode.height(), sample.width(), sample.height(), local));
+          }
+        : null,
+    );
+  }
+
+  const node = el && el.type !== 'background' && !panning ? findNode(s, selectedId) : null;
   if (!node) {
     s.transformer.nodes([]);
-    return;
+  } else {
+    s.transformer.setAttrs(transformerFor(el));
+    s.transformer.nodes([node]);
   }
-  s.transformer.setAttrs(transformerFor(el));
-  s.transformer.nodes([node]);
+  s.stage.container().style.cursor = panning ? 'grab' : '';
 }
 
 function bindElementEvents(s, doc) {
@@ -54,28 +81,57 @@ function bindElementEvents(s, doc) {
     node.draggable(!el.locked);
     node.on('pointerdown', () => useEditor.getState().select(el.id));
     node.on('mouseenter', () => {
-      container.style.cursor = 'move';
+      if (!useEditor.getState().panPhoto) container.style.cursor = 'move';
     });
     node.on('mouseleave', () => {
-      container.style.cursor = '';
+      if (!useEditor.getState().panPhoto) container.style.cursor = '';
     });
-    node.on('dragend', () => {
+    // Only react to the element itself, not to a child (the sample photo) being dragged inside it.
+    node.on('dragend', (e) => {
+      if (e.target !== node) return;
       const { x, y } = nodeBox(node);
       useEditor.getState().updateElement(el.id, { x, y });
     });
-    node.on('transformend', () => {
+    node.on('transformend', (e) => {
+      if (e.target !== node) return;
       useEditor.getState().updateElement(el.id, transformPatch(el, node, s.activeAnchor));
     });
+  });
+
+  // Photo area: double-click to position the sample photo; dragging it stores the new focus point.
+  const photoEl = doc.elements.find((e) => e.type === 'photo');
+  const photoNode = photoEl ? findNode(s, photoEl.id) : null;
+  const sample = photoNode?.findOne('.samplePhoto');
+  if (!photoNode || !sample) return;
+  photoNode.on('dblclick dbltap', () => {
+    if (photoEl.locked) return;
+    useEditor.getState().select(photoEl.id);
+    useEditor.getState().setPanPhoto(true);
+  });
+  sample.on('dragstart', () => {
+    container.style.cursor = 'grabbing';
+  });
+  sample.on('dragend', () => {
+    container.style.cursor = 'grab';
+    const focus = focusFromPlacement(photoNode.width(), photoNode.height(), {
+      x: sample.x(),
+      y: sample.y(),
+      width: sample.width(),
+      height: sample.height(),
+    });
+    useEditor.getState().setPreview(focus, 'preview:pan');
   });
 }
 
 /**
- * @param hostRef   div the stage mounts into
- * @param pxPerMm   current screen scale (fit × zoom); 0 until the viewport is measured
- * @param getImage  asset lookup for buildFrame
- * @param version   bumps when fonts or images finish loading
+ * @param hostRef     div the stage mounts into
+ * @param pxPerMm     current screen scale (fit × zoom); 0 until the viewport is measured
+ * @param getImage    asset lookup for buildFrame
+ * @param version     bumps when fonts or images finish loading
+ * @param showSample  draw the sample photo in the photo area
+ * @param panPhoto    photo-positioning mode
  */
-export function useFrameStage(hostRef, { doc, pxPerMm, selectedId, getImage, version }) {
+export function useFrameStage(hostRef, { doc, pxPerMm, selectedId, getImage, version, showSample, panPhoto }) {
   const ref = useRef(null);
 
   useLayoutEffect(() => {
@@ -91,9 +147,18 @@ export function useFrameStage(hostRef, { doc, pxPerMm, selectedId, getImage, ver
     });
     // A press on empty canvas (or the locked background) clears the selection.
     stage.on('pointerdown', (e) => {
-      if (e.target === stage || (e.target.getLayer() === content && !e.target.hasName('element'))) {
+      if (e.target === stage || (e.target.getLayer() === content && !e.target.findAncestor('.element', true))) {
         useEditor.getState().select(null);
       }
+    });
+    // While positioning the photo, the mouse wheel zooms it.
+    stage.on('wheel', (e) => {
+      const state = useEditor.getState();
+      if (!state.panPhoto) return;
+      e.evt.preventDefault();
+      const zoom = state.history?.present.preview?.zoom ?? 1;
+      const next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoom * (e.evt.deltaY < 0 ? 1.08 : 1 / 1.08)));
+      state.setPreview({ zoom: Math.round(next * 100) / 100 }, 'preview:zoom');
     });
     ref.current = s;
     return () => {
@@ -128,7 +193,7 @@ export function useFrameStage(hostRef, { doc, pxPerMm, selectedId, getImage, ver
         listening: false,
       }),
     );
-    s.world = buildFrame(doc, { getImage, pxPerMm });
+    s.world = buildFrame(doc, { getImage, pxPerMm, photo: showSample ? 'sample' : 'placeholder' });
     s.world.position(origin);
     s.content.add(s.world);
 
@@ -138,14 +203,15 @@ export function useFrameStage(hostRef, { doc, pxPerMm, selectedId, getImage, ver
     s.guides.moveToBottom();
 
     bindElementEvents(s, doc);
-    attachTransformer(s, doc, useEditor.getState().selectedId);
+    const state = useEditor.getState();
+    applySelection(s, doc, state.selectedId, state.panPhoto);
     s.stage.batchDraw();
-  }, [doc, pxPerMm, getImage, version]);
+  }, [doc, pxPerMm, getImage, version, showSample]);
 
   useLayoutEffect(() => {
     const s = ref.current;
     if (!s?.world) return;
-    attachTransformer(s, doc, selectedId);
-    s.overlay.batchDraw();
-  }, [doc, selectedId]);
+    applySelection(s, doc, selectedId, panPhoto);
+    s.stage.batchDraw();
+  }, [doc, selectedId, panPhoto]);
 }

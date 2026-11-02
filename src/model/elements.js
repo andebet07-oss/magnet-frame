@@ -31,5 +31,6 @@ export function assetPathsOf(doc) {
     if (el.type === 'image' && el.src) paths.add(el.src);
     if (el.type === 'background' && el.image) paths.add(el.image);
   }
+  if (doc.preview?.photo) paths.add(doc.preview.photo);
   return [...paths];
 }

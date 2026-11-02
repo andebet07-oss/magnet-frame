@@ -11,7 +11,7 @@ const THUMBNAIL_WIDTH_PX = 360;
  * @param area  'trim' (what the magnet shows) or 'bleed' (print file with bleed)
  * @returns HTMLCanvasElement at exactly box × pxPerMm pixels
  */
-export async function renderFrameToCanvas(doc, { assets, pxPerMm, area = 'trim' }) {
+export async function renderFrameToCanvas(doc, { assets, pxPerMm, area = 'trim', photo = 'sample' }) {
   await Promise.all([ensureFonts(fontSpecsOf(doc)), assets.ensure(assetPathsOf(doc))]);
   const box = frameBoxes(doc.size)[area];
   const container = document.createElement('div');
@@ -23,7 +23,7 @@ export async function renderFrameToCanvas(doc, { assets, pxPerMm, area = 'trim' 
   try {
     const layer = new Konva.Layer();
     stage.add(layer);
-    const world = buildFrame(doc, { getImage: assets.get, pxPerMm });
+    const world = buildFrame(doc, { getImage: assets.get, pxPerMm, photo });
     world.position({ x: -box.x * pxPerMm, y: -box.y * pxPerMm });
     layer.add(world);
     // pixelRatio 1: the canvas has exactly the requested pixel count, whatever the screen density.

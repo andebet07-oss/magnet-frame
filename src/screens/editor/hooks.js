@@ -65,7 +65,9 @@ export function useEditorKeys({ onSaveNow }) {
         return;
       }
       if (e.key === 'Escape') {
-        state.select(null);
+        // First Escape leaves photo positioning, the next one clears the selection.
+        if (state.panPhoto) state.setPanPhoto(false);
+        else state.select(null);
         return;
       }
       const el = selectedOf(state);

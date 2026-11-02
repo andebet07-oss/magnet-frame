@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { createCloudRepo } from '@/storage/cloudRepo';
 import { assetFileName, imageTypeOf, templatePrefix } from '@/storage/paths';
 import { isNetworkError } from '@/storage/errors';
-import { createMemoryGateway } from './helpers/memoryGateway';
+import { createMemoryGateway } from '@/storage/memoryGateway';
 
 const USER = '11111111-1111-4111-8111-111111111111';
 const png = (name = 'logo.png', type = 'image/png') => new File([new Uint8Array([137, 80, 78, 71])], name, { type });
