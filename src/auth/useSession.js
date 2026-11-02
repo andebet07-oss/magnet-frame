@@ -1,7 +1,7 @@
 // Current sign-in state: { status: 'loading' | 'signedOut' | 'signedIn', user, error }.
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { authErrorFromUrl, authErrorMessage, cleanAuthParams } from './authErrors';
+import { authErrorFromUrl, authErrorMessage, cleanAuthParams, sessionTokensFromUrl } from './authErrors';
 
 const LOADING = { status: 'loading', user: null, error: null };
 
@@ -22,14 +22,19 @@ export function useSession() {
       // A failed sign-in link comes back with its error in the address bar.
       const urlError = authErrorFromUrl(window.location.href);
       const hadCode = new URL(window.location.href).searchParams.has('code');
+      // Links sent from the Supabase dashboard (invite, confirm, "send magic link") carry the session
+      // in the address bar instead of a PKCE code. The client rejects those, so adopt them here;
+      // setSession checks the token with Supabase before signing in.
+      const linkTokens = sessionTokensFromUrl(window.location.href);
       // initialize() finishes reading a returning sign-in link and reports what went wrong.
-      const { error: initError } = await supabase.auth.initialize();
+      let { error: initError } = await supabase.auth.initialize();
+      if (linkTokens) ({ error: initError } = await supabase.auth.setSession(linkTokens));
       const { data, error: sessionError } = await supabase.auth.getSession();
       // A link opened in another browser is ignored by Supabase (no PKCE verifier here): say so.
       const wrongBrowser = hadCode && !data?.session ? { code: 'flow_state_not_found' } : null;
       const problem = urlError ?? initError ?? sessionError ?? wrongBrowser;
       if (problem) console.error('[auth] sign-in did not complete:', problem.message ?? problem.code);
-      if (urlError || initError || hadCode) window.history.replaceState(null, '', cleanAuthParams(window.location.href));
+      if (urlError || initError || hadCode || linkTokens) window.history.replaceState(null, '', cleanAuthParams(window.location.href));
       if (alive) apply(stateFor(data?.session?.user, problem ? authErrorMessage(problem) : null));
     })();
 

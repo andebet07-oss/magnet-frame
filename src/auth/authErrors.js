@@ -38,6 +38,15 @@ export function authErrorFromUrl(href) {
   return { code: params.get('error_code') ?? params.get('error'), message: params.get('error_description') ?? '' };
 }
 
+/** Session tokens that a dashboard-sent link puts in the address bar hash, or null. */
+export function sessionTokensFromUrl(href) {
+  const params = new URLSearchParams(new URL(href).hash.replace(/^#/, ''));
+  const accessToken = params.get('access_token');
+  const refreshToken = params.get('refresh_token');
+  if (!accessToken || !refreshToken || params.get('error')) return null;
+  return { access_token: accessToken, refresh_token: refreshToken };
+}
+
 /** The address without Supabase's error or code parameters, for history.replaceState. */
 export function cleanAuthParams(href) {
   const url = new URL(href);

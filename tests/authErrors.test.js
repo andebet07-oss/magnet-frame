@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { authErrorFromUrl, authErrorMessage, cleanAuthParams } from '@/auth/authErrors';
+import { authErrorFromUrl, authErrorMessage, cleanAuthParams, sessionTokensFromUrl } from '@/auth/authErrors';
 
 describe('authErrorMessage', () => {
   it('maps Supabase error codes to Hebrew', () => {
@@ -34,5 +34,21 @@ describe('sign-in link errors in the address bar', () => {
     expect(cleanAuthParams('https://x.app/?error=a&error_code=b&error_description=c&keep=1')).toBe('https://x.app/?keep=1');
     expect(cleanAuthParams('https://x.app/?code=123')).toBe('https://x.app/');
     expect(cleanAuthParams('https://x.app/#error=a')).toBe('https://x.app/');
+  });
+});
+
+describe('links sent from the Supabase dashboard', () => {
+  it('reads the session they carry in the hash', () => {
+    expect(sessionTokensFromUrl('https://x.app/#access_token=aaa&expires_in=3600&refresh_token=rrr&token_type=bearer&type=signup')).toEqual({
+      access_token: 'aaa',
+      refresh_token: 'rrr',
+    });
+  });
+
+  it('ignores addresses without a full session, or with an error', () => {
+    expect(sessionTokensFromUrl('https://x.app/')).toBeNull();
+    expect(sessionTokensFromUrl('https://x.app/?code=123')).toBeNull();
+    expect(sessionTokensFromUrl('https://x.app/#access_token=aaa')).toBeNull();
+    expect(sessionTokensFromUrl('https://x.app/#error=x&access_token=a&refresh_token=b')).toBeNull();
   });
 });
